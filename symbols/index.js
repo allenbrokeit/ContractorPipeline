@@ -11,6 +11,9 @@ import * as functions from './functions/index.js'
 import * as methods from './methods/index.js'
 import designSystem from './designSystem/index.js'
 import files from './files/index.js'
+import sharedLibraries from './sharedLibraries.js'
+import config from './config.js'
+import env from './env.js'
 
 create(app, {
   state,
@@ -21,5 +24,8 @@ create(app, {
   functions,
   methods,
   designSystem,
-  files
+  files,
+  sharedLibraries,
+  config,
+  env
 })

@@ -13,9 +13,10 @@ import designSystem from './designSystem/index.js'
 import files from './files/index.js'
 import sharedLibraries from './sharedLibraries.js'
 import config from './config.js'
-import env from './env.js'
+import envs from './envs.js'
 
 create(app, {
+  ...config,
   state,
   dependencies,
   components,
@@ -26,6 +27,5 @@ create(app, {
   designSystem,
   files,
   sharedLibraries,
-  config,
-  env
+  envs
 })

@@ -1,7 +1,9 @@
 {
   "key": "projectName.symbo.ls",
+  "branch": "main",
+  "version": "1.0.0",
   "distDir": "./symbols",
   "bundler": "parcel",
-  "version": "1.0.0",
-  "branch": "main"
+  "entry": "index.html",
+  "port": 1234
 }

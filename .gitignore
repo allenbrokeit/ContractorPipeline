@@ -36,4 +36,3 @@ node_modules
 .parcel-cache
 .cache
 dist
-smbls_dist

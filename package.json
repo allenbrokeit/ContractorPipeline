@@ -5,8 +5,8 @@
   "author": "symbo.ls",
   "repository": "https://github.com/symbo-ls/starter-kit",
   "scripts": {
-    "start": "smbls start",
-    "build": "smbls build"
+    "start": "npx smbls start",
+    "build": "npx smbls build"
   },
   "dependencies": {
     "smbls": "^3.2.3"

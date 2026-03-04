@@ -2,7 +2,7 @@
   "key": "projectName.symbo.ls",
   "branch": "main",
   "version": "1.0.0",
-  "distDir": "./symbols",
+  "dir": "./symbols",
   "bundler": "parcel",
   "packageManager": "npm"
 }

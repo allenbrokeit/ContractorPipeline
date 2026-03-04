@@ -1,4 +1,1 @@
-export default {
-  packageManager: 'npm',
-  prepareDependencies: false
-}
+export default {}

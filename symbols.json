@@ -4,6 +4,5 @@
   "version": "1.0.0",
   "distDir": "./symbols",
   "bundler": "parcel",
-  "entry": "index.html",
-  "port": 1234
+  "packageManager": "npm"
 }

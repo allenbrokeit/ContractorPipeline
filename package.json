@@ -1,29 +1,14 @@
 {
   "name": "@symbo.ls/starter-kit",
-  "version": "2.34.4",
+  "version": "3.2.3",
   "description": "Example dev setup to use Symbols",
   "author": "symbo.ls",
   "repository": "https://github.com/symbo-ls/starter-kit",
   "scripts": {
-    "start": "parcel index.html",
-    "build": "parcel build index.html"
+    "start": "smbls start",
+    "build": "smbls build"
   },
   "dependencies": {
-    "smbls": "^2.34.4"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.28.4",
-    "@babel/eslint-parser": "^7.28.4",
-    "@babel/preset-env": "^7.28.3",
-    "@parcel/babel-preset-env": "^2.16.0",
-    "@parcel/transformer-inline-string": "^2.16.0",
-    "@parcel/transformer-raw": "^2.16.0",
-    "buffer": "^6.0.3",
-    "eslint": "^9.37.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.32.0",
-    "parcel": "^2.16.0",
-    "standard": "^17.1.2"
-  },
-  "gitHead": "24af4cb709642223c3fa555fa6fb954570c31b6b"
+    "smbls": "^3.2.3"
+  }
 }

@@ -32,6 +32,10 @@ node_modules
 # Optional REPL history
 .node_repl_history
 
+# Symbols files
+.symbols_local/
+!.symbols_local/config.json
+
 # Parcel files
 .parcel-cache
 .cache

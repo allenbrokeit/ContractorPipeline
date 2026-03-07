@@ -1,0 +1,6 @@
+{
+  "runtime": "node",
+  "bundler": "parcel",
+  "packageManager": "npm",
+  "deploy": "symbols"
+}

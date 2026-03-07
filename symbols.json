@@ -1,4 +1,5 @@
 {
   "key": "projectName.symbo.ls",
-  "dir": "./symbols"
+  "dir": "./symbols",
+  "bundler": "parcel"
 }

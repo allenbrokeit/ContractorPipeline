@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "@symbo.ls/starter-kit",
   "version": "3.5.1",
   "description": "Example dev setup to use Symbols",

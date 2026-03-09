@@ -11,5 +11,8 @@
   },
   "dependencies": {
     "smbls": "^3.5.1"
+  },
+  "publishConfig": {
+    "access": "restricted"
   }
 }

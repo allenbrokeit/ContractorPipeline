@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "symbols-mcp": {
+      "command": "uvx",
+      "args": ["symbols-mcp"],
+      "type": "stdio"
+    }
+  }
+}

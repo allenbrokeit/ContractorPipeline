@@ -8,11 +8,13 @@ import * as methods from './methods/index.js'
 import designSystem from './designSystem/index.js'
 import files from './files/index.js'
 import sharedLibraries from './sharedLibraries.js'
+import cases from './cases.js'
 import config from './config.js'
 import envs from './envs.js'
 
 export default {
   ...config,
+  cases,
   state,
   dependencies,
   components,

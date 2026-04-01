@@ -13,7 +13,6 @@ import shape from './shape.js'
 import reset from './reset.js'
 import animation from './animation.js'
 import media from './media.js'
-import cases from './cases.js'
 
 export default {
   color,
@@ -31,5 +30,4 @@ export default {
   reset,
   animation,
   media,
-  cases
 }

@@ -1,0 +1,17 @@
+{
+  "quarters": [
+    {
+      "title": "Q1 (Jan-Mar)"
+    },
+    {
+      "title": "Q2 (Apr-Jun)"
+    },
+    {
+      "title": "Q3 (Jul-Sep)"
+    },
+    {
+      "title": "Q4 (Oct-Dec)"
+    }
+  ],
+  "currentYear": null
+}

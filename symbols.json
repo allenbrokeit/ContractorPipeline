@@ -1,7 +1,7 @@
 {
   "owner": "system",
-  "key": "projectName",
+  "key": "ContractorPipeline",
   "dir": "./symbols",
-  "bundler": "parcel",
-  "sharedLibraries": ["system/default"]
+  "useKV": true,
+  "bundler": "parcel"
 }

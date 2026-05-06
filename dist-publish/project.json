@@ -1,0 +1,702 @@
+{
+  "useReset": true,
+  "useVariable": true,
+  "useFontImport": true,
+  "useIconSprite": true,
+  "useSvgSprite": true,
+  "useDefaultConfig": true,
+  "useDocumentTheme": true,
+  "verbose": false,
+  "globalTheme": "auto",
+  "cases": {},
+  "state": {
+    "currentDate": "2026-04-13T23:19:23.136Z",
+    "targetMonthlyThreshold": 1500,
+    "isContractModalOpen": false,
+    "selectedProposalId": null,
+    "clients": [
+      {
+        "id": "c_1",
+        "name": "Acme Corp",
+        "industry": "SaaS"
+      },
+      {
+        "id": "c_2",
+        "name": "Globex Inc",
+        "industry": "Logistics"
+      },
+      {
+        "id": "c_3",
+        "name": "Soylent Corp",
+        "industry": "Food & Beverage"
+      },
+      {
+        "id": "c_4",
+        "name": "Initech",
+        "industry": "FinTech"
+      },
+      {
+        "id": "c_5",
+        "name": "Umbrella Corp",
+        "industry": "Biotech"
+      }
+    ],
+    "proposals": [
+      {
+        "id": "p_1",
+        "clientId": "c_2",
+        "title": "QA Automation Framework Setup",
+        "status": "Lead",
+        "estimatedMonthlyValue": 2000,
+        "proposedDurationMonths": 3
+      },
+      {
+        "id": "p_2",
+        "clientId": "c_3",
+        "title": "Frontend Replatforming",
+        "status": "Negotiating",
+        "estimatedMonthlyValue": 5000,
+        "proposedDurationMonths": 6
+      },
+      {
+        "id": "p_3",
+        "clientId": "c_1",
+        "title": "Monthly Security Audits",
+        "status": "Pitched",
+        "estimatedMonthlyValue": 800,
+        "proposedDurationMonths": 12
+      },
+      {
+        "id": "p_4",
+        "clientId": "c_4",
+        "title": "Payment Gateway Integration",
+        "status": "Lead",
+        "estimatedMonthlyValue": 3500,
+        "proposedDurationMonths": 2
+      },
+      {
+        "id": "p_5",
+        "clientId": "c_5",
+        "title": "Legacy API Migration",
+        "status": "Negotiating",
+        "estimatedMonthlyValue": 4200,
+        "proposedDurationMonths": 6
+      },
+      {
+        "id": "p_6",
+        "clientId": "c_2",
+        "title": "Cloud Infrastructure Audit",
+        "status": "Pitched",
+        "estimatedMonthlyValue": 1500,
+        "proposedDurationMonths": 1
+      },
+      {
+        "id": "p_7",
+        "clientId": "c_4",
+        "title": "Mobile App Wireframing",
+        "status": "Lead",
+        "estimatedMonthlyValue": 1800,
+        "proposedDurationMonths": 2
+      }
+    ],
+    "contracts": [
+      {
+        "id": "ac_1",
+        "clientId": "c_1",
+        "proposalId": null,
+        "title": "Retainer: Dev Support",
+        "startDate": "2026-02-28T16:00:00.000Z",
+        "endDate": "2026-05-30T16:00:00.000Z",
+        "durationMonths": 3,
+        "monthlyValue": 1000,
+        "status": "Active"
+      },
+      {
+        "id": "ac_2",
+        "clientId": "c_4",
+        "proposalId": "p_old_1",
+        "title": "Core Infrastructure Setup",
+        "startDate": "2026-05-14T16:00:00.000Z",
+        "endDate": "2026-08-14T16:00:00.000Z",
+        "durationMonths": 3,
+        "monthlyValue": 2500,
+        "status": "Active"
+      },
+      {
+        "id": "ac_3",
+        "clientId": "c_5",
+        "proposalId": "p_old_2",
+        "title": "Data Science Retainer",
+        "startDate": "2026-06-30T16:00:00.000Z",
+        "endDate": "2026-12-30T16:00:00.000Z",
+        "durationMonths": 6,
+        "monthlyValue": 3000,
+        "status": "Active"
+      },
+      {
+        "id": "ac_4",
+        "clientId": "c_2",
+        "proposalId": "p_old_3",
+        "title": "Performance Troubleshooting",
+        "startDate": "2026-04-30T16:00:00.000Z",
+        "endDate": "2026-05-30T16:00:00.000Z",
+        "durationMonths": 1,
+        "monthlyValue": 4000,
+        "status": "Active"
+      }
+    ]
+  },
+  "dependencies": {
+    "smbls": "3.8.9"
+  },
+  "components": {
+    "ContractFormModal": {
+      "extends": "Flex",
+      "display": "(el, s) => s.root.isContractModalOpen ? \"flex\" : \"none\"",
+      "position": "fixed",
+      "top": 0,
+      "left": 0,
+      "right": 0,
+      "bottom": 0,
+      "background": "rgba(0,0,0,0.5)",
+      "backdropFilter": "blur(8px)",
+      "alignItems": "center",
+      "justifyContent": "center",
+      "zIndex": 1000,
+      "state": {
+        "startDate": "2026-04-13",
+        "durationMonths": 3
+      },
+      "Dialog": {
+        "extends": "Flex",
+        "flexDirection": "column",
+        "background": "rgba(30, 41, 59, 0.9)",
+        "backdropFilter": "blur(16px)",
+        "border": "1px solid rgba(255, 255, 255, 0.15)",
+        "boxShadow": "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+        "padding": "B",
+        "borderRadius": "Z",
+        "width": "400px",
+        "gap": "A",
+        "Header": {
+          "tag": "h2",
+          "text": "Convert to Contract",
+          "margin": 0,
+          "color": "textPrimary"
+        },
+        "RefInfo": {
+          "color": "textSecondary",
+          "text": "(el, s) => {\n        if (!s.root.selectedProposalId) return \"\";\n        const p = s.root.proposals.find((x) => x.id === s.root.selectedProposalId);\n        return `Proposal: ${p?.title}`;\n      }"
+        },
+        "FormGroup1": {
+          "extends": "Flex",
+          "flexDirection": "column",
+          "gap": "Y",
+          "Label": {
+            "tag": "label",
+            "text": "Start Date",
+            "color": "textSecondary",
+            "fontSize": "Z"
+          },
+          "Input": {
+            "tag": "input",
+            "type": "date",
+            "style": {
+              "color": "#F8FAFC",
+              "colorScheme": "dark",
+              "::-webkit-calendar-picker-indicator": {
+                "filter": "invert(1) brightness(2)"
+              }
+            },
+            "padding": "Z",
+            "background": "bgPrimary",
+            "border": "1px solid",
+            "borderColor": "border",
+            "borderRadius": "W",
+            "value": "(el, s) => s.startDate",
+            "onInput": "(event, el, s) => {\n          s.update({ startDate: event.target.value });\n        }"
+          }
+        },
+        "FormGroup2": {
+          "extends": "Flex",
+          "flexDirection": "column",
+          "gap": "Y",
+          "Label": {
+            "tag": "label",
+            "text": "Duration (Months)",
+            "color": "textSecondary",
+            "fontSize": "Z"
+          },
+          "Select": {
+            "tag": "select",
+            "style": {
+              "color": "#F8FAFC",
+              "colorScheme": "dark"
+            },
+            "padding": "Z",
+            "background": "bgPrimary",
+            "border": "1px solid",
+            "borderColor": "border",
+            "borderRadius": "W",
+            "childExtends": {
+              "tag": "option",
+              "value": "(el, s) => String(s.val)",
+              "text": "(el, s) => `${s.val} Month${s.val > 1 ? \"s\" : \"\"}`",
+              "attr": {
+                "selected": "(el, s) => s.isSelected || null"
+              }
+            },
+            "onChange": "(event, el, s) => {\n          const val = parseInt(event.target.value, 10) || 1;\n          s.update({ durationMonths: val });\n        }",
+            "children": "(el, s) => [1, 2, 3, 6, 12].map((val) => ({\n          state: { val, isSelected: val === s.durationMonths }\n        }))"
+          }
+        },
+        "Calculation": {
+          "color": "secured",
+          "fontSize": "Y",
+          "text": "(el, s) => {\n        if (!s.startDate) return \"\";\n        const start = new Date(s.startDate);\n        const endDate = new Date(start.getFullYear(), start.getMonth() + s.durationMonths, start.getDate());\n        return `Calculated End Date: ${endDate.toLocaleDateString()}`;\n      }"
+        },
+        "Actions": {
+          "extends": "Flex",
+          "gap": "Z",
+          "justifyContent": "flex-end",
+          "marginTop": "Z",
+          "Cancel": {
+            "tag": "button",
+            "text": "Cancel",
+            "padding": "Z A",
+            "background": "transparent",
+            "border": "1px solid",
+            "borderColor": "border",
+            "color": "textSecondary",
+            "borderRadius": "W",
+            "cursor": "pointer",
+            "onClick": "(evt, el) => {\n          el.getRoot().state.update({ isContractModalOpen: false, selectedProposalId: null });\n        }"
+          },
+          "Confirm": {
+            "tag": "button",
+            "text": "Confirm & Sign",
+            "padding": "Z A",
+            "background": "secured",
+            "border": "none",
+            "color": "black",
+            "borderRadius": "W",
+            "cursor": "pointer",
+            "onClick": "(evt, el, s) => {\n          const rState = el.getRoot().state;\n          const pId = rState.selectedProposalId;\n          const prop = rState.proposals.find((p) => p.id === pId);\n          if (prop) {\n            const start = new Date(s.startDate);\n            const endDate = new Date(start.getFullYear(), start.getMonth() + s.durationMonths, start.getDate()).toISOString();\n            const newContract = {\n              id: `ac_${Date.now()}`,\n              clientId: prop.clientId,\n              proposalId: prop.id,\n              title: prop.title,\n              startDate: start.toISOString(),\n              endDate,\n              durationMonths: s.durationMonths,\n              monthlyValue: prop.estimatedMonthlyValue,\n              status: \"Active\"\n            };\n            rState.update({\n              contracts: [...rState.contracts, newContract],\n              proposals: rState.proposals.map((px) => px.id === pId ? { ...px, status: \"Closed\", proposedDurationMonths: s.durationMonths } : px),\n              isContractModalOpen: false,\n              selectedProposalId: null\n            });\n          }\n        }"
+          }
+        }
+      }
+    },
+    "DashboardLayout": {
+      "extend": "Flex",
+      "props": {
+        "padding": "C",
+        "background": "bgPrimary",
+        "minHeight": "100vh",
+        "width": "100%",
+        "fontFamily": "system-ui, sans-serif",
+        "flexDirection": "column",
+        "gap": "B"
+      },
+      "Header": {
+        "tag": "h1",
+        "props": {
+          "text": "Contractor Pipeline & Forecaster",
+          "color": "white",
+          "margin": "0 0 B 0"
+        }
+      },
+      "Grid": {
+        "extend": "Grid",
+        "props": {
+          "gridTemplateColumns": "1fr",
+          "gap": "B"
+        },
+        "TopSection": {
+          "extend": "Flex",
+          "props": {
+            "flexDirection": "column",
+            "gap": "A"
+          },
+          "FinancialHealthGauge": {
+            "extend": "FinancialHealthGauge"
+          },
+          "TimelineGantt": {
+            "extend": "TimelineGantt"
+          }
+        },
+        "BottomSection": {
+          "extend": "Flex",
+          "props": {
+            "flexDirection": "column",
+            "gap": "A"
+          },
+          "SectionTitle": {
+            "tag": "h2",
+            "props": {
+              "text": "Active Pipeline",
+              "color": "white"
+            }
+          },
+          "ProposalKanbanBoard": {
+            "extend": "ProposalKanbanBoard"
+          }
+        }
+      },
+      "ContractFormModal": {
+        "extend": "ContractFormModal"
+      }
+    },
+    "FinancialHealthGauge": {
+      "extend": "Flex",
+      "props": {
+        "padding": "A",
+        "background": "rgba(30, 41, 59, 0.6)",
+        "backdropFilter": "blur(12px)",
+        "border": "1px solid rgba(255, 255, 255, 0.05)",
+        "borderRadius": "Z",
+        "flexDirection": "column",
+        "alignItems": "center",
+        "gap": "Y",
+        "width": "100%",
+        "marginBottom": "B",
+        "transition": "transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease",
+        ":hover": {
+          "transform": "translateY(-2px)",
+          "boxShadow": "0 8px 30px rgba(0, 0, 0, 0.4)",
+          "border": "1px solid rgba(255, 255, 255, 0.1)"
+        }
+      },
+      "Label": {
+        "tag": "span",
+        "props": {
+          "text": "Monthly Aggregate vs Target",
+          "color": "textSecondary",
+          "fontSize": "Z",
+          "textTransform": "uppercase",
+          "letterSpacing": "0.05em"
+        }
+      },
+      "GaugeContainer": {
+        "extend": "Flex",
+        "props": {
+          "width": "100%",
+          "background": "bgPrimary",
+          "height": "12px",
+          "borderRadius": "W",
+          "position": "relative"
+        },
+        "Bar": {
+          "props": "(el, s) => {\n        const contracts = s.root.contracts || [];\n        const target = s.root.targetMonthlyThreshold || 1500;\n        const currentSum = contracts.reduce((acc, curr) => acc + curr.monthlyValue, 0);\n        const pct = Math.min(currentSum / target * 100, 100);\n        const isHealthy = currentSum >= target;\n        return {\n          height: \"100%\",\n          width: `${pct}%`,\n          background: isHealthy ? \"secured\" : \"atRisk\",\n          borderRadius: \"W\",\n          transition: \"width 0.3s ease, background 0.3s ease\"\n        };\n      }"
+        },
+        "TargetMarker": {
+          "props": {
+            "position": "absolute",
+            "left": "100%",
+            "top": "-4px",
+            "width": "4px",
+            "height": "20px",
+            "background": "white",
+            "borderRadius": "V"
+          }
+        }
+      },
+      "Stats": {
+        "extend": "Flex",
+        "props": {
+          "justifyContent": "space-between",
+          "width": "100%",
+          "color": "textPrimary",
+          "fontWeight": "bold"
+        },
+        "Current": {
+          "props": "(el, s) => {\n        const contracts = s.root.contracts || [];\n        const currentSum = contracts.reduce((acc, curr) => acc + curr.monthlyValue, 0);\n        return { text: `$${currentSum} secured` };\n      }"
+        },
+        "Target": {
+          "props": "(el, s) => ({ text: `Target: $${s.root.targetMonthlyThreshold}` })"
+        }
+      }
+    },
+    "ProposalKanbanBoard": {
+      "extend": "Flex",
+      "props": {
+        "gap": "A",
+        "width": "100%",
+        "overflowX": "auto",
+        "paddingBottom": "A"
+      },
+      "childExtends": {
+        "extend": "Flex",
+        "props": {
+          "flexDirection": "column",
+          "gap": "Y",
+          "minWidth": "280px",
+          "flex": 1,
+          "background": "rgba(30, 41, 59, 0.4)",
+          "backdropFilter": "blur(8px)",
+          "border": "1px solid rgba(255, 255, 255, 0.05)",
+          "padding": "A",
+          "borderRadius": "Z"
+        },
+        "Header": {
+          "tag": "h3",
+          "props": {
+            "text": "(el, s) => s.title",
+            "color": "textPrimary",
+            "paddingBottom": "Y",
+            "borderBottom": "1px solid",
+            "borderColor": "border"
+          }
+        },
+        "Cards": {
+          "extend": "Flex",
+          "props": {
+            "flexDirection": "column",
+            "gap": "Y",
+            "paddingTop": "Y"
+          },
+          "childExtends": {
+            "extend": "Flex",
+            "props": {
+              "flexDirection": "column",
+              "gap": "X",
+              "background": "rgba(15, 23, 42, 0.6)",
+              "backdropFilter": "blur(12px)",
+              "padding": "Z",
+              "borderRadius": "Y",
+              "border": "1px solid rgba(255, 255, 255, 0.08)",
+              "boxShadow": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              "cursor": "pointer",
+              "transition": "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, border 0.2s ease",
+              ":hover": {
+                "transform": "translateY(-4px) scale(1.01)",
+                "boxShadow": "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
+                "border": "1px solid rgba(255, 255, 255, 0.15)"
+              }
+            },
+            "Title": {
+              "props": {
+                "text": "(el, s) => s.title",
+                "color": "textPrimary",
+                "fontWeight": "bold"
+              }
+            },
+            "Client": {
+              "props": "(el, s) => {\n            const client = s.root.clients?.find((c) => c.id === s.clientId);\n            return { text: client?.name, color: \"textSecondary\", fontSize: \"Z\" };\n          }"
+            },
+            "Value": {
+              "props": {
+                "text": "(el, s) => `$${s.estimatedMonthlyValue}/mo (${s.status === \"Closed\" ? s.proposedDurationMonths + \" mos\" : \"TBD\"})`",
+                "color": "secured",
+                "fontSize": "Y",
+                "fontWeight": "600"
+              }
+            },
+            "Actions": {
+              "extend": "Flex",
+              "props": {
+                "gap": "X",
+                "marginTop": "X"
+              },
+              "childExtends": {
+                "tag": "button",
+                "props": {
+                  "padding": "V X",
+                  "background": "blue.5",
+                  "color": "black",
+                  "border": "none",
+                  "borderRadius": "W",
+                  "cursor": "pointer",
+                  "fontSize": "Y",
+                  "text": "(el, s) => s.label",
+                  "onClick": "(event, el) => {\n                const action = el.parent.parent.state;\n                const rootState = el.getRoot().state;\n                if (el.state.actionContent === \"Won\") {\n                  el.getRoot().state.update({\n                    isContractModalOpen: true,\n                    selectedProposalId: action.id\n                  });\n                } else {\n                  const proposals = rootState.proposals.map((p) => {\n                    if (p.id === action.id) {\n                      return { ...p, status: el.state.actionContent };\n                    }\n                    return p;\n                  });\n                  rootState.update({ proposals });\n                  setTimeout(() => console.log(`[Mock DB] updated proposal ${action.id} to ${el.state.actionContent}`), 300);\n                }\n              }"
+                }
+              },
+              "children": "(el, s) => {\n            const status = s.status;\n            if (status === \"Lead\") return [{ state: { label: \"Pitch\", actionContent: \"Pitched\" } }];\n            if (status === \"Pitched\") return [{ state: { label: \"Negotiate\", actionContent: \"Negotiating\" } }];\n            if (status === \"Negotiating\") return [{ state: { label: \"Mark Won\", actionContent: \"Won\" } }];\n            return [];\n          }"
+            }
+          },
+          "children": "(el, s) => {\n        return (s.root.proposals || []).filter((p) => p.status === s.title).map((p) => ({ state: p }));\n      }"
+        }
+      },
+      "children": [
+        {
+          "state": {
+            "title": "Lead"
+          }
+        },
+        {
+          "state": {
+            "title": "Pitched"
+          }
+        },
+        {
+          "state": {
+            "title": "Negotiating"
+          }
+        },
+        {
+          "state": {
+            "title": "Closed"
+          }
+        }
+      ]
+    },
+    "TimelineGantt": {
+      "extend": "Flex",
+      "props": {
+        "padding": "A",
+        "background": "rgba(30, 41, 59, 0.6)",
+        "backdropFilter": "blur(12px)",
+        "border": "1px solid rgba(255, 255, 255, 0.05)",
+        "borderRadius": "Z",
+        "flexDirection": "column",
+        "gap": "A",
+        "marginBottom": "B",
+        "transition": "box-shadow 0.2s ease, border 0.2s ease",
+        ":hover": {
+          "boxShadow": "0 8px 30px rgba(0, 0, 0, 0.4)",
+          "border": "1px solid rgba(255, 255, 255, 0.1)"
+        }
+      },
+      "Header": {
+        "tag": "h2",
+        "props": {
+          "text": "12-Month Capacity Forecast",
+          "margin": 0,
+          "color": "textPrimary"
+        }
+      },
+      "Grid": {
+        "extend": "Grid",
+        "props": {
+          "gridTemplateColumns": "150px repeat(4, 1fr)",
+          "gap": "X",
+          "borderBottom": "1px solid",
+          "borderColor": "border",
+          "paddingBottom": "Y",
+          "color": "textSecondary",
+          "fontSize": "Z"
+        },
+        "Label": {
+          "props": {
+            "text": "Client / Duration"
+          }
+        },
+        "Months": {
+          "props": {
+            "display": "contents"
+          },
+          "childExtends": {
+            "props": "(el, s) => ({\n          text: s.title,\n          textAlign: \"center\",\n          fontWeight: \"500\"\n        })"
+          },
+          "children": "() => [\n        { title: \"Q1 (Jan-Mar)\" },\n        { title: \"Q2 (Apr-Jun)\" },\n        { title: \"Q3 (Jul-Sep)\" },\n        { title: \"Q4 (Oct-Dec)\" }\n      ].map((q) => ({ state: { title: q.title } }))"
+        }
+      },
+      "Rows": {
+        "extend": "Flex",
+        "props": {
+          "flexDirection": "column",
+          "gap": "Y",
+          "paddingTop": "Y"
+        },
+        "childExtends": {
+          "extend": "Grid",
+          "props": {
+            "gridTemplateColumns": "150px repeat(4, 1fr)",
+            "gap": "X",
+            "alignItems": "center"
+          },
+          "ClientLabel": {
+            "props": "(el, s) => {\n          const client = s.root.clients?.find((c) => c.id === s.clientId);\n          return {\n            text: client ? client.name : \"Unknown\",\n            color: \"textPrimary\",\n            fontSize: \"Z\",\n            fontWeight: \"600\"\n          };\n        }"
+          },
+          "Tracks": {
+            "extend": "Flex",
+            "props": {
+              "gridColumn": "2 / span 4",
+              "position": "relative",
+              "height": "24px",
+              "background": "rgba(255,255,255,0.05)",
+              "borderRadius": "W"
+            },
+            "Block": {
+              "props": "(el, s) => {\n            const currentYear = (/* @__PURE__ */ new Date()).getFullYear();\n            const start = new Date(s.startDate);\n            const diffMonths = (start.getFullYear() - currentYear) * 12 + start.getMonth();\n            const startCol = Math.max(0, diffMonths);\n            const overflowLeft = diffMonths < 0 ? Math.abs(diffMonths) : 0;\n            const visualDuration = Math.max(0, s.durationMonths - overflowLeft);\n            return {\n              position: \"absolute\",\n              display: visualDuration <= 0 ? \"none\" : \"flex\",\n              left: `${startCol / 12 * 100}%`,\n              width: `${visualDuration / 12 * 100}%`,\n              height: \"100%\",\n              background: \"linear-gradient(90deg, rgba(59,130,246,0.85) 0%, rgba(37,99,235,0.85) 100%)\",\n              backdropFilter: \"blur(4px)\",\n              border: \"1px solid rgba(255,255,255,0.15)\",\n              boxShadow: \"0 4px 12px rgba(37,99,235,0.2)\",\n              borderRadius: \"W\",\n              alignItems: \"center\",\n              justifyContent: \"center\",\n              color: \"white\",\n              fontSize: \"Y\",\n              text: `$${s.monthlyValue}/mo`,\n              cursor: \"pointer\",\n              transition: \"transform 0.2s ease, filter 0.2s ease, z-index 0s\",\n              \":hover\": {\n                transform: \"scale(1.02)\",\n                filter: \"brightness(1.15)\",\n                zIndex: 10\n              }\n            };\n          }"
+            }
+          }
+        },
+        "children": "(el, s) => (s.root.contracts || []).map((c) => ({ state: c }))"
+      }
+    }
+  },
+  "snippets": {},
+  "pages": {
+    "extend": "DashboardLayout"
+  },
+  "functions": {},
+  "methods": {
+    "closeModal": "(event, element) => {\n  element.getRoot().state.update({\n    isContractModalOpen: false,\n    selectedProposalId: null\n  });\n}",
+    "convertProposalToContract": "(event, element, state) => {\n  const rootState = element.getRoot().state;\n  const { proposalId, startDate, durationMonths } = element.props;\n  const proposal = rootState.proposals.find((p) => p.id === proposalId);\n  if (!proposal) return;\n  const start = new Date(startDate);\n  const endDate = new Date(start.getFullYear(), start.getMonth() + durationMonths, 0).toISOString();\n  const newContract = {\n    id: `ac_${Date.now()}`,\n    clientId: proposal.clientId,\n    proposalId: proposal.id,\n    title: proposal.title,\n    startDate: start.toISOString(),\n    endDate,\n    durationMonths,\n    monthlyValue: proposal.estimatedMonthlyValue,\n    status: \"Active\"\n  };\n  rootState.update({\n    contracts: [...rootState.contracts, newContract],\n    isContractModalOpen: false,\n    selectedProposalId: null\n  });\n  setTimeout(() => {\n    console.log(`[SQLite INSERT MOCK] INSERT INTO Contracts...`, newContract);\n  }, 500);\n}",
+    "openContractModal": "(event, element) => {\n  const rootState = element.getRoot().state;\n  const { id } = element.props;\n  rootState.update({\n    isContractModalOpen: true,\n    selectedProposalId: id\n  });\n}",
+    "updateProposalStatus": "(event, element, state) => {\n  const { id, status } = element.props;\n  const rootState = element.getRoot().state;\n  const proposals = rootState.proposals.map((p) => {\n    if (p.id === id) {\n      return { ...p, status };\n    }\n    return p;\n  });\n  rootState.update({ proposals });\n  setTimeout(() => {\n    console.log(`[SQLite UPDATE MOCK] UPDATE Proposals SET status = '${status}' WHERE id = '${id}'`);\n  }, 400);\n}"
+  },
+  "designSystem": {
+    "color": {
+      "secured": "#10B981",
+      "atRisk": "#F59E0B",
+      "critical": "#EF4444",
+      "bgPrimary": "#0F172A",
+      "cardBg": "#1E293B",
+      "border": "#334155",
+      "textPrimary": "#F8FAFC",
+      "textSecondary": "#94A3B8"
+    },
+    "theme": {
+      "@dark": {
+        "color": "white",
+        "background": "black"
+      }
+    },
+    "typography": {
+      "h1": {
+        "fontSize": "2em",
+        "fontWeight": "bold",
+        "margin": "0 0 1em 0"
+      },
+      "h2": {
+        "fontSize": "1.5em",
+        "fontWeight": "bold",
+        "margin": "0 0 0.5em 0"
+      },
+      "h3": {
+        "fontSize": "1.2em",
+        "fontWeight": "bold",
+        "margin": "0 0 0.25em 0"
+      },
+      "label": {
+        "fontSize": "0.875em",
+        "textTransform": "uppercase",
+        "color": "gray.5",
+        "letterSpacing": "0.05em"
+      }
+    },
+    "spacing": {
+      "navHeight": "60px",
+      "sidebarWidth": "240px"
+    }
+  },
+  "files": {},
+  "sharedLibraries": [],
+  "envs": {},
+  "app": {
+    "extend": "DashboardLayout"
+  },
+  "schema": {
+    "dependencies": {
+      "smbls": {
+        "key": "smbls",
+        "resolvedVersion": "3.8.9",
+        "type": "dependency",
+        "version": "3.8.9",
+        "status": "done"
+      }
+    }
+  }
+}

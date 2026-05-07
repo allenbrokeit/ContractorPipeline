@@ -45,7 +45,7 @@ export const TimelineGantt = {
         { title: 'Q2 (Apr-Jun)' },
         { title: 'Q3 (Jul-Sep)' },
         { title: 'Q4 (Oct-Dec)' }
-      ].map(q => ({ state: { title: q.title } }))
+      ]
     }
   },
 
@@ -74,12 +74,11 @@ export const TimelineGantt = {
         extends: 'Flex',
         gridColumn: '2 / span 4',
         position: 'relative',
-        height: '24px',
+        minHeight: '24px',
         background: 'rgba(255,255,255,0.05)',
         borderRadius: 'W',
         
         Block: {
-          position: 'absolute',
           display: (el, s) => {
             const currentYear = new Date().getFullYear()
             const start = new Date(s.startDate)
@@ -88,7 +87,7 @@ export const TimelineGantt = {
             const visualDuration = Math.max(0, s.durationMonths - overflowLeft)
             return visualDuration <= 0 ? 'none' : 'flex'
           },
-          left: (el, s) => {
+          marginLeft: (el, s) => {
             const currentYear = new Date().getFullYear()
             const start = new Date(s.startDate)
             const diffMonths = (start.getFullYear() - currentYear) * 12 + start.getMonth()
@@ -107,7 +106,10 @@ export const TimelineGantt = {
             }
             return `${(visualDuration / 12) * 100}%`
           },
-          height: '100%',
+          minHeight: '100%',
+          padding: 'Z Y',
+          textAlign: 'center',
+          boxSizing: 'border-box',
           background: (el, s) => s.isProposal ? 'rgba(59,130,246,0.3)' : 'linear-gradient(90deg, rgba(59,130,246,0.85) 0%, rgba(37,99,235,0.85) 100%)',
           backdropFilter: 'blur(4px)',
           border: (el, s) => s.isProposal ? '1px dashed rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.15)',

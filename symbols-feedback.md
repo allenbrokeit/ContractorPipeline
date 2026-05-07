@@ -273,6 +273,12 @@ display: 'flex', // CLI warns on deployment build/bundling.
 - **Wrong Solution:** Attempting to force lifecycle hooks like `onUpdate` to manually diff and sync the global state into the local state proxy.
 - **Right Solution:** Leverage DOMQL's native state-mapping engine to naturally isolate the component. Instead of generating state inside the editor, map the editor as a child of a structural container. The container uses `childrenAs: 'state'` and returns an array containing a single deep-copied slice of the selected item: `children: (el, s) => [JSON.parse(JSON.stringify(s.root.contracts.find...))]`. When the selection changes, the mapped array natively re-binds the new deep-copied payload to the child editor, completely avoiding lifecycle edge cases while protecting the global list from live mutation.
 
+### Bug 16: Absolute Positioning Preventing Container Expansion (Gantt Text Overflow)
+- **Target:** `TimelineGantt.js` (Tracks and Block)
+- **Symptom:** When project titles were too long to fit within the width of their timeline block, the text wrapped but visually overflowed outside the vertical boundaries of the track row. The row itself refused to increase in height to accommodate the wrapped text.
+- **Wrong Solution:** Relying on `position: 'absolute'` with a `left` offset for the inner blocks while assigning a fixed `height: '24px'` to the parent track. Because absolute positioning removes the element from the document flow, the parent container is entirely blind to the inner block's calculated height and cannot grow dynamically.
+- **Right Solution:** Keep the blocks within the document flow to allow natural height expansion. By removing `position: 'absolute'`, changing `left:` to `marginLeft:`, and replacing fixed `height` constraints with `minHeight`, the inner block naturally pushes the parent container's height downward whenever text wraps, preserving the layout integrity automatically. Adding `boxSizing: 'border-box'` and internal `padding` ensures the text doesn't hit the absolute edges of the newly flexible container.
+
 ---
 
 ## 4. Character Counts

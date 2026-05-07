@@ -267,6 +267,12 @@ display: 'flex', // CLI warns on deployment build/bundling.
 - **Wrong Solution:** Using both `childrenAs: 'state'` on the parent AND manually wrapping the array items in a `{ state: ... }` object during the mapping phase: `data.map(c => ({ state: c }))`. This causes DOMQL to bind the state one level too deep, meaning the expected data lives at `s.state.title` instead of `s.title`.
 - **Right Solution:** The `childrenAs: 'state'` directive and the manual `{ state: c }` wrapper are mutually exclusive. When utilizing `childrenAs: 'state'`, the `children: (el, s) => ...` function MUST return an array of raw data objects: `data.map(c => ({ ...c, isProposal: true }))`. The framework natively handles wrapping each raw object as a state payload for the spawned child element.
 
+### Bug 15: Managing Editable Local State from Global Sources
+- **Target:** `ContractDetailPane.js` (Editor Forms)
+- **Symptom:** When building editable forms for globally managed data (like a selected contract), binding `onInput` directly back to `s.root.contracts` causes the global array (and the master list view) to mutate live on every un-saved keystroke. Conversely, using a localized `state: (el, s) => JSON.parse(JSON.stringify(s.root...))` block inside an `if:`-gated component fails to update when the user clicks between *different* contracts because the component does not unmount (the condition remains true), leaving the local state stuck on the first selection.
+- **Wrong Solution:** Attempting to force lifecycle hooks like `onUpdate` to manually diff and sync the global state into the local state proxy.
+- **Right Solution:** Leverage DOMQL's native state-mapping engine to naturally isolate the component. Instead of generating state inside the editor, map the editor as a child of a structural container. The container uses `childrenAs: 'state'` and returns an array containing a single deep-copied slice of the selected item: `children: (el, s) => [JSON.parse(JSON.stringify(s.root.contracts.find...))]`. When the selection changes, the mapped array natively re-binds the new deep-copied payload to the child editor, completely avoiding lifecycle edge cases while protecting the global list from live mutation.
+
 ---
 
 ## 4. Character Counts

@@ -112,7 +112,6 @@ export const ProposalKanbanBoard = {
   children: [
     { state: { title: 'Lead' } },
     { state: { title: 'Pitched' } },
-    { state: { title: 'Negotiating' } },
-    { state: { title: 'Closed' } }
+    { state: { title: 'Negotiating' } }
   ]
 }

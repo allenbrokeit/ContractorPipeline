@@ -120,6 +120,12 @@ export const TimelineGantt = {
           text: (el, s) => `${s.title} ($${s.monthlyValue}/mo)${s.isProposal ? ' [Pipeline]' : ''}`,
           attr: { title: (el, s) => s.title },
           cursor: 'pointer',
+          onClick: (e, el, s) => {
+            if (!s.isProposal) {
+              el.getRootState().update({ selectedContractId: s.id })
+              el.router('/contracts', el.getRoot())
+            }
+          },
           transition: 'transform 0.2s ease, filter 0.2s ease, z-index 0s',
           ':hover': {
             transform: 'scale(1.02)',

@@ -6,6 +6,8 @@ export default {
   // UI State toggles
   isContractModalOpen: false,
   selectedProposalId: null,
+  selectedContractId: null,
+  contractSortBy: 'recent',
 
   // Entity Data
   clients: [

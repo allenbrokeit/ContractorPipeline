@@ -219,6 +219,54 @@ display: 'flex', // CLI warns on deployment build/bundling.
   }
   ```
 
+### Bug 9: GaugeContainer Lacking Granular Data Mapping (FinancialHealthGauge)
+- **Target:** `FinancialHealthGauge.js`
+- **Symptom:** The financial health gauge rendered as a single monolithic bar presenting only an aggregate percentage, failing to exhibit the component projects comprising that aggregate.
+- **Wrong Solution:** Using a single `Bar` component block referencing the root state directly without looping.
+- **Right Solution:** Map the constituent parts utilizing `children: (el, s) => ...` alongside `childExtends` to organically slice the container into responsive, state-driven segments representing each project independently:
+  ```javascript
+  Segments: {
+    childExtends: { ... },
+    children: (el, s) => (s.root.contracts || []).map(c => ({ state: c }))
+  }
+  ```
+
+### Bug 10: Omission of Underlying Project Metadata in Labels (TimelineGantt)
+- **Target:** `TimelineGantt.js`
+- **Symptom:** Timeline blocks and track row labels only displayed client names and monetary values, depriving the user of crucial project context (e.g. `Retainer: Dev Support`) tied natively to those contracts.
+- **Wrong Solution:** Relying exclusively on inherited `s.clientId` lookup for `client.name` while omitting the existing explicit `s.title` prop from the dataset:
+  ```javascript
+  text: client ? client.name : 'Unknown'
+  ```
+- **Right Solution:** Concatenate the inherent project title directly from the mapped state block alongside the client derivation, and provide tooltips.
+  ```javascript
+  text: `${client ? client.name : 'Unknown'} - ${s.title || 'Untitled'}`
+  ```
+
+### Bug 11: Missing Pipeline Projections in Global Forecasts
+- **Target:** `TimelineGantt.js` & `FinancialHealthGauge.js`
+- **Symptom:** The user noted that projects in the "Active Pipeline" (Kanban board) were not reflected in the 12-Month Capacity Forecast or the Monthly Aggregate tracking bar. These components originally mapped only `s.root.contracts`, completely ignoring `s.root.proposals`.
+- **Wrong Solution:** Leaving the data isolation as is, assuming only secured contracts should dictate capacity and health.
+- **Right Solution:** Append active proposals to the state-mapping arrays locally within the components. For `TimelineGantt`, active proposals are injected with `isProposal: true`, a projected `startDate` of today, and mapped via `proposedDurationMonths`. They receive dashed styling and `[Pipeline]` suffixing. In `FinancialHealthGauge`, pipeline projects are segmented with transparent/blue styling and summed into a secondary "pipeline" total adjacent to the "secured" total.
+
+### Bug 12: Visual Length Distortion and Overflow on Projections
+- **Target:** `FinancialHealthGauge.js` & `TimelineGantt.js`
+- **Symptom:** In the Financial Health Gauge, when the total active pipeline value exceeded the target, the segments visually compressed because they calculated their widths relative to the dynamic `totalSum` rather than the static target. In the Gantt chart, proposals with long durations (e.g. 12 months) starting from the current month overflowed past the right boundary of the 12-month track container.
+- **Wrong Solution:** Relying on the parent container's `Math.min(..., 100)` scaling to control children sized relatively to `totalSum`, and failing to explicitly clip timeline block widths on the temporal axis.
+- **Right Solution:** For the Gauge, set the `Segments` container to a static `width: 100%` with `overflow: hidden`, and map each child's width strictly against the fixed target: `(val / target) * 100`. For the Gantt chart, cap `visualDuration` mathematically so that `startCol + visualDuration` never exceeds `12` months.
+
+### Bug 13: Blank Renders from Deprecated Props Wrappers and Missing State Directives
+- **Target:** `FinancialHealthGauge.js` & `TimelineGantt.js`
+- **Symptom:** Mapped data collections (contracts and pipeline proposals) failed to populate the child elements visually (resulting in blank rows and empty segments), despite correctly mapping the state objects via `children: (el, s) => data.map(item => ({ state: item }))`.
+- **Wrong Solution:** Leaving the dynamically mapped children without explicitly instructing the DOMQL engine to pass state downward, and wrapping child configurations in deprecated `props: {}` or `props: (el, s) => {}` blocks.
+- **Right Solution:** In DOMQL v3, dynamically mapped lists strictly require the `childrenAs: 'state'` directive on the parent node so the VDOM inherently binds the mapped item state to `el.state` for each spawned child. Furthermore, the `props` wrapper is entirely deprecated in v3; all reactive properties (like `width: (el, s) => ...`) must be fully flattened at the root level of the component's declaration object.
+
+### Bug 14: Undefined State Properties Due to Double-Wrapping (`childrenAs: 'state'` Conflict)
+- **Target:** `TimelineGantt.js` & `FinancialHealthGauge.js`
+- **Symptom:** After applying `childrenAs: 'state'` (Bug 13) to correctly bind state downward into `childExtends`, the text fields in the UI rendered as "Unknown-Untitled" or "undefined ($undefined/mo)". The `s` object existed, but `s.title`, `s.clientId`, etc., were undefined.
+- **Wrong Solution:** Using both `childrenAs: 'state'` on the parent AND manually wrapping the array items in a `{ state: ... }` object during the mapping phase: `data.map(c => ({ state: c }))`. This causes DOMQL to bind the state one level too deep, meaning the expected data lives at `s.state.title` instead of `s.title`.
+- **Right Solution:** The `childrenAs: 'state'` directive and the manual `{ state: c }` wrapper are mutually exclusive. When utilizing `childrenAs: 'state'`, the `children: (el, s) => ...` function MUST return an array of raw data objects: `data.map(c => ({ ...c, isProposal: true }))`. The framework natively handles wrapping each raw object as a state payload for the spawned child element.
+
 ---
 
 ## 4. Character Counts

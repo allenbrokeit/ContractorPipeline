@@ -59,9 +59,9 @@ export const ProposalKanbanBoard = {
             tag: 'button',
             props: {
               padding: 'V X',
-              background: 'blue.5',
-              color: 'black',
-              border: 'none',
+              background: 'blue.2',
+              color: 'white',
+              border: '1px solid blue',
               borderRadius: 'W',
               cursor: 'pointer',
               fontSize: 'Y',

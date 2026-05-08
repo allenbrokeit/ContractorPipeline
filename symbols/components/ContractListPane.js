@@ -21,12 +21,17 @@ export const ContractListPane = {
       color: 'white',
       border: '1px solid rgba(255,255,255,0.1)',
       borderRadius: 'W',
-      onChange: (e, el, s) => el.getRootState().update({ contractSortBy: e.target.value }),
+      onChange: (e, el, s) => {
+        console.log('SORT CHANGED TO:', e.target.value)
+        el.getRootState().update({ contractSortBy: e.target.value })
+      },
       childExtends: {
         tag: 'option',
-        value: (el, s) => String(s.val),
         text: (el, s) => s.label,
-        attr: { selected: (el, s) => s.val === el.getRootState().contractSortBy || null }
+        attr: { 
+          value: (el, s) => String(s.val),
+          selected: (el, s) => s.val === el.getRootState().contractSortBy || null 
+        }
       },
       childrenAs: 'state',
       children: () => [
@@ -100,7 +105,7 @@ export const ContractListPane = {
         contracts.reverse()
       }
       
-      return contracts
+      return contracts.map(c => ({ ...c }))
     }
   }
 }

@@ -1,126 +1,155 @@
 export const TimelineGantt = {
-  extend: 'Flex',
-  props: {
-    padding: 'A',
-    background: 'rgba(30, 41, 59, 0.6)',
-    backdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255, 255, 255, 0.05)',
-    borderRadius: 'Z',
-    flexDirection: 'column',
-    gap: 'A',
-    marginBottom: 'B',
-    transition: 'box-shadow 0.2s ease, border 0.2s ease',
-    ':hover': {
-      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
-      border: '1px solid rgba(255, 255, 255, 0.1)'
-    }
+  extends: 'Flex',
+  padding: 'A',
+  background: 'rgba(30, 41, 59, 0.6)',
+  backdropFilter: 'blur(12px)',
+  border: '1px solid rgba(255, 255, 255, 0.05)',
+  borderRadius: 'Z',
+  flexDirection: 'column',
+  gap: 'A',
+  marginBottom: 'B',
+  transition: 'box-shadow 0.2s ease, border 0.2s ease',
+  ':hover': {
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
+    border: '1px solid rgba(255, 255, 255, 0.1)'
   },
   
   Header: {
     tag: 'h2',
-    props: { text: '12-Month Capacity Forecast', margin: 0, color: 'textPrimary' }
+    text: '12-Month Capacity Forecast',
+    margin: 0,
+    color: 'textPrimary'
   },
 
   Grid: {
-    extend: 'Grid',
-    props: {
-      gridTemplateColumns: '150px repeat(4, 1fr)',
-      gap: 'X',
-      borderBottom: '1px solid',
-      borderColor: 'border',
-      paddingBottom: 'Y',
-      color: 'textSecondary',
-      fontSize: 'Z'
-    },
-    Label: { props: { text: 'Client / Duration' } },
+    extends: 'Grid',
+    gridTemplateColumns: '150px repeat(4, 1fr)',
+    gap: 'X',
+    borderBottom: '1px solid',
+    borderColor: 'border',
+    paddingBottom: 'Y',
+    color: 'textSecondary',
+    fontSize: 'Z',
+    
+    Label: { text: 'Client / Duration' },
     Months: {
-      props: { display: 'contents' },
+      display: 'contents',
       childExtends: {
-        props: (el, s) => ({
-          text: s.title,
-          textAlign: 'center',
-          fontWeight: '500'
-        })
+        text: (el, s) => s.title,
+        textAlign: 'center',
+        fontWeight: '500'
       },
+      childrenAs: 'state',
       children: () => [
         { title: 'Q1 (Jan-Mar)' },
         { title: 'Q2 (Apr-Jun)' },
         { title: 'Q3 (Jul-Sep)' },
         { title: 'Q4 (Oct-Dec)' }
-      ].map(q => ({ state: { title: q.title } }))
+      ]
     }
   },
 
   Rows: {
-    extend: 'Flex',
-    props: { flexDirection: 'column', gap: 'Y', paddingTop: 'Y' },
+    extends: 'Flex',
+    flexDirection: 'column',
+    gap: 'Y',
+    paddingTop: 'Y',
+    
     childExtends: {
-      extend: 'Grid',
-      props: {
-        gridTemplateColumns: '150px repeat(4, 1fr)',
-        gap: 'X',
-        alignItems: 'center'
-      },
+      extends: 'Grid',
+      gridTemplateColumns: '150px repeat(4, 1fr)',
+      gap: 'X',
+      alignItems: 'center',
+      
       ClientLabel: {
-        props: (el, s) => {
+        text: (el, s) => {
           const client = s.root.clients?.find(c => c.id === s.clientId)
-          return {
-            text: client ? client.name : 'Unknown',
-            color: 'textPrimary',
-            fontSize: 'Z',
-            fontWeight: '600'
-          }
-        }
+          return `${client ? client.name : 'Unknown'} - ${s.title || 'Untitled'}`
+        },
+        color: 'textPrimary',
+        fontSize: 'Z',
+        fontWeight: '600'
       },
       Tracks: {
-        extend: 'Flex',
-        props: {
-          gridColumn: '2 / span 4',
-          position: 'relative',
-          height: '24px',
-          background: 'rgba(255,255,255,0.05)',
-          borderRadius: 'W'
-        },
+        extends: 'Flex',
+        gridColumn: '2 / span 4',
+        position: 'relative',
+        minHeight: '24px',
+        background: 'rgba(255,255,255,0.05)',
+        borderRadius: 'W',
+        
         Block: {
-          props: (el, s) => {
-            // Calculate start and end mathematically offset to current year mapping across 4 quarters (12 invisible months)
+          display: (el, s) => {
             const currentYear = new Date().getFullYear()
             const start = new Date(s.startDate)
             const diffMonths = (start.getFullYear() - currentYear) * 12 + start.getMonth()
-            
-            const startCol = Math.max(0, diffMonths)
             const overflowLeft = diffMonths < 0 ? Math.abs(diffMonths) : 0
             const visualDuration = Math.max(0, s.durationMonths - overflowLeft)
-            
-            return {
-              position: 'absolute',
-              display: visualDuration <= 0 ? 'none' : 'flex',
-              left: `${(startCol / 12) * 100}%`,
-              width: `${(visualDuration / 12) * 100}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, rgba(59,130,246,0.85) 0%, rgba(37,99,235,0.85) 100%)',
-              backdropFilter: 'blur(4px)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              boxShadow: '0 4px 12px rgba(37,99,235,0.2)',
-              borderRadius: 'W',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: 'Y',
-              text: `$${s.monthlyValue}/mo`,
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease, filter 0.2s ease, z-index 0s',
-              ':hover': {
-                transform: 'scale(1.02)',
-                filter: 'brightness(1.15)',
-                zIndex: 10
-              }
+            return visualDuration <= 0 ? 'none' : 'flex'
+          },
+          marginLeft: (el, s) => {
+            const currentYear = new Date().getFullYear()
+            const start = new Date(s.startDate)
+            const diffMonths = (start.getFullYear() - currentYear) * 12 + start.getMonth()
+            const startCol = Math.max(0, diffMonths)
+            return `${(startCol / 12) * 100}%`
+          },
+          width: (el, s) => {
+            const currentYear = new Date().getFullYear()
+            const start = new Date(s.startDate)
+            const diffMonths = (start.getFullYear() - currentYear) * 12 + start.getMonth()
+            const startCol = Math.max(0, diffMonths)
+            const overflowLeft = diffMonths < 0 ? Math.abs(diffMonths) : 0
+            let visualDuration = Math.max(0, s.durationMonths - overflowLeft)
+            if (startCol + visualDuration > 12) {
+              visualDuration = Math.max(0, 12 - startCol)
             }
+            return `${(visualDuration / 12) * 100}%`
+          },
+          minHeight: '100%',
+          padding: 'Z Y',
+          textAlign: 'center',
+          boxSizing: 'border-box',
+          background: (el, s) => s.isProposal ? 'rgba(59,130,246,0.3)' : 'linear-gradient(90deg, rgba(59,130,246,0.85) 0%, rgba(37,99,235,0.85) 100%)',
+          backdropFilter: 'blur(4px)',
+          border: (el, s) => s.isProposal ? '1px dashed rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.15)',
+          boxShadow: (el, s) => s.isProposal ? 'none' : '0 4px 12px rgba(37,99,235,0.2)',
+          borderRadius: 'W',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: 'Y',
+          text: (el, s) => `${s.title} ($${s.monthlyValue}/mo)${s.isProposal ? ' [Pipeline]' : ''}`,
+          attr: { title: (el, s) => s.title },
+          cursor: 'pointer',
+          onClick: (e, el, s) => {
+            if (!s.isProposal) {
+              el.getRootState().update({ selectedContractId: s.id })
+              el.router('/contracts', el.getRoot())
+            }
+          },
+          transition: 'transform 0.2s ease, filter 0.2s ease, z-index 0s',
+          ':hover': {
+            transform: 'scale(1.02)',
+            filter: 'brightness(1.15)',
+            zIndex: 10
           }
         }
       }
     },
-    children: (el, s) => (s.root.contracts || []).map(c => ({ state: c }))
+    childrenAs: 'state',
+    children: (el, s) => {
+      const contracts = s.root.contracts || []
+      const pipeline = (s.root.proposals || [])
+        .filter(p => p.status !== 'Closed')
+        .map(p => ({
+          ...p,
+          isProposal: true,
+          startDate: new Date().toISOString(), // Assuming proposals start immediately for the forecast
+          durationMonths: p.proposedDurationMonths,
+          monthlyValue: p.estimatedMonthlyValue
+        }))
+      return [...contracts, ...pipeline]
+    }
   }
 }
-

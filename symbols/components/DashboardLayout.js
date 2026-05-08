@@ -1,45 +1,30 @@
 export const DashboardLayout = {
-  extend: 'Flex',
-  props: {
-    padding: 'C',
-    background: 'bgPrimary',
-    minHeight: '100vh',
-    width: '100%',
-    fontFamily: 'system-ui, sans-serif',
-    flexDirection: 'column',
-    gap: 'B'
-  },
-  
-  Header: {
-    tag: 'h1',
-    props: {
-      text: 'Contractor Pipeline & Forecaster',
-      color: 'white',
-      margin: '0 0 B 0'
-    }
-  },
+  extends: 'Flex',
+  padding: 'C',
+  flexDirection: 'column',
+  gap: 'B',
 
   Grid: {
-    extend: 'Grid',
+    extends: 'Grid',
     props: {
       gridTemplateColumns: '1fr',
       gap: 'B'
     },
     
     TopSection: {
-      extend: 'Flex',
+      extends: 'Flex',
       props: { flexDirection: 'column', gap: 'A' },
-      FinancialHealthGauge: { extend: 'FinancialHealthGauge' },
-      TimelineGantt: { extend: 'TimelineGantt' }
+      FinancialHealthGauge: { extends: 'FinancialHealthGauge' },
+      TimelineGantt: { extends: 'TimelineGantt' }
     },
 
     BottomSection: {
-      extend: 'Flex',
+      extends: 'Flex',
       props: { flexDirection: 'column', gap: 'A' },
       SectionTitle: { tag: 'h2', props: { text: 'Active Pipeline', color: 'white' } },
-      ProposalKanbanBoard: { extend: 'ProposalKanbanBoard' }
+      ProposalKanbanBoard: { extends: 'ProposalKanbanBoard' }
     }
   },
 
-  ContractFormModal: { extend: 'ContractFormModal' }
+  ContractFormModal: { extends: 'ContractFormModal' }
 }

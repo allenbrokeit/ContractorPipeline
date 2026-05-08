@@ -219,11 +219,85 @@ display: 'flex', // CLI warns on deployment build/bundling.
   }
   ```
 
+### Bug 9: GaugeContainer Lacking Granular Data Mapping (FinancialHealthGauge)
+- **Target:** `FinancialHealthGauge.js`
+- **Symptom:** The financial health gauge rendered as a single monolithic bar presenting only an aggregate percentage, failing to exhibit the component projects comprising that aggregate.
+- **Wrong Solution:** Using a single `Bar` component block referencing the root state directly without looping.
+- **Right Solution:** Map the constituent parts utilizing `children: (el, s) => ...` alongside `childExtends` to organically slice the container into responsive, state-driven segments representing each project independently:
+  ```javascript
+  Segments: {
+    childExtends: { ... },
+    children: (el, s) => (s.root.contracts || []).map(c => ({ state: c }))
+  }
+  ```
+
+### Bug 10: Omission of Underlying Project Metadata in Labels (TimelineGantt)
+- **Target:** `TimelineGantt.js`
+- **Symptom:** Timeline blocks and track row labels only displayed client names and monetary values, depriving the user of crucial project context (e.g. `Retainer: Dev Support`) tied natively to those contracts.
+- **Wrong Solution:** Relying exclusively on inherited `s.clientId` lookup for `client.name` while omitting the existing explicit `s.title` prop from the dataset:
+  ```javascript
+  text: client ? client.name : 'Unknown'
+  ```
+- **Right Solution:** Concatenate the inherent project title directly from the mapped state block alongside the client derivation, and provide tooltips.
+  ```javascript
+  text: `${client ? client.name : 'Unknown'} - ${s.title || 'Untitled'}`
+  ```
+
+### Bug 11: Missing Pipeline Projections in Global Forecasts
+- **Target:** `TimelineGantt.js` & `FinancialHealthGauge.js`
+- **Symptom:** The user noted that projects in the "Active Pipeline" (Kanban board) were not reflected in the 12-Month Capacity Forecast or the Monthly Aggregate tracking bar. These components originally mapped only `s.root.contracts`, completely ignoring `s.root.proposals`.
+- **Wrong Solution:** Leaving the data isolation as is, assuming only secured contracts should dictate capacity and health.
+- **Right Solution:** Append active proposals to the state-mapping arrays locally within the components. For `TimelineGantt`, active proposals are injected with `isProposal: true`, a projected `startDate` of today, and mapped via `proposedDurationMonths`. They receive dashed styling and `[Pipeline]` suffixing. In `FinancialHealthGauge`, pipeline projects are segmented with transparent/blue styling and summed into a secondary "pipeline" total adjacent to the "secured" total.
+
+### Bug 12: Visual Length Distortion and Overflow on Projections
+- **Target:** `FinancialHealthGauge.js` & `TimelineGantt.js`
+- **Symptom:** In the Financial Health Gauge, when the total active pipeline value exceeded the target, the segments visually compressed because they calculated their widths relative to the dynamic `totalSum` rather than the static target. In the Gantt chart, proposals with long durations (e.g. 12 months) starting from the current month overflowed past the right boundary of the 12-month track container.
+- **Wrong Solution:** Relying on the parent container's `Math.min(..., 100)` scaling to control children sized relatively to `totalSum`, and failing to explicitly clip timeline block widths on the temporal axis.
+- **Right Solution:** For the Gauge, set the `Segments` container to a static `width: 100%` with `overflow: hidden`, and map each child's width strictly against the fixed target: `(val / target) * 100`. For the Gantt chart, cap `visualDuration` mathematically so that `startCol + visualDuration` never exceeds `12` months.
+
+### Bug 13: Blank Renders from Deprecated Props Wrappers and Missing State Directives
+- **Target:** `FinancialHealthGauge.js` & `TimelineGantt.js`
+- **Symptom:** Mapped data collections (contracts and pipeline proposals) failed to populate the child elements visually (resulting in blank rows and empty segments), despite correctly mapping the state objects via `children: (el, s) => data.map(item => ({ state: item }))`.
+- **Wrong Solution:** Leaving the dynamically mapped children without explicitly instructing the DOMQL engine to pass state downward, and wrapping child configurations in deprecated `props: {}` or `props: (el, s) => {}` blocks.
+- **Right Solution:** In DOMQL v3, dynamically mapped lists strictly require the `childrenAs: 'state'` directive on the parent node so the VDOM inherently binds the mapped item state to `el.state` for each spawned child. Furthermore, the `props` wrapper is entirely deprecated in v3; all reactive properties (like `width: (el, s) => ...`) must be fully flattened at the root level of the component's declaration object.
+
+### Bug 14: Undefined State Properties Due to Double-Wrapping (`childrenAs: 'state'` Conflict)
+- **Target:** `TimelineGantt.js` & `FinancialHealthGauge.js`
+- **Symptom:** After applying `childrenAs: 'state'` (Bug 13) to correctly bind state downward into `childExtends`, the text fields in the UI rendered as "Unknown-Untitled" or "undefined ($undefined/mo)". The `s` object existed, but `s.title`, `s.clientId`, etc., were undefined.
+- **Wrong Solution:** Using both `childrenAs: 'state'` on the parent AND manually wrapping the array items in a `{ state: ... }` object during the mapping phase: `data.map(c => ({ state: c }))`. This causes DOMQL to bind the state one level too deep, meaning the expected data lives at `s.state.title` instead of `s.title`.
+- **Right Solution:** The `childrenAs: 'state'` directive and the manual `{ state: c }` wrapper are mutually exclusive. When utilizing `childrenAs: 'state'`, the `children: (el, s) => ...` function MUST return an array of raw data objects: `data.map(c => ({ ...c, isProposal: true }))`. The framework natively handles wrapping each raw object as a state payload for the spawned child element.
+
+### Bug 15: Managing Editable Local State from Global Sources
+- **Target:** `ContractDetailPane.js` (Editor Forms)
+- **Symptom:** When building editable forms for globally managed data (like a selected contract), binding `onInput` directly back to `s.root.contracts` causes the global array (and the master list view) to mutate live on every un-saved keystroke. Conversely, using a localized `state: (el, s) => JSON.parse(JSON.stringify(s.root...))` block inside an `if:`-gated component fails to update when the user clicks between *different* contracts because the component does not unmount (the condition remains true), leaving the local state stuck on the first selection.
+- **Wrong Solution:** Attempting to force lifecycle hooks like `onUpdate` to manually diff and sync the global state into the local state proxy.
+- **Right Solution:** Leverage DOMQL's native state-mapping engine to naturally isolate the component. Instead of generating state inside the editor, map the editor as a child of a structural container. The container uses `childrenAs: 'state'` and returns an array containing a single deep-copied slice of the selected item: `children: (el, s) => [JSON.parse(JSON.stringify(s.root.contracts.find...))]`. When the selection changes, the mapped array natively re-binds the new deep-copied payload to the child editor, completely avoiding lifecycle edge cases while protecting the global list from live mutation.
+
+### Bug 16: Absolute Positioning Preventing Container Expansion (Gantt Text Overflow)
+- **Target:** `TimelineGantt.js` (Tracks and Block)
+- **Symptom:** When project titles were too long to fit within the width of their timeline block, the text wrapped but visually overflowed outside the vertical boundaries of the track row. The row itself refused to increase in height to accommodate the wrapped text.
+- **Wrong Solution:** Relying on `position: 'absolute'` with a `left` offset for the inner blocks while assigning a fixed `height: '24px'` to the parent track. Because absolute positioning removes the element from the document flow, the parent container is entirely blind to the inner block's calculated height and cannot grow dynamically.
+- **Right Solution:** Keep the blocks within the document flow to allow natural height expansion. By removing `position: 'absolute'`, changing `left:` to `marginLeft:`, and replacing fixed `height` constraints with `minHeight`, the inner block naturally pushes the parent container's height downward whenever text wraps, preserving the layout integrity automatically. Adding `boxSizing: 'border-box'` and internal `padding` ensures the text doesn't hit the absolute edges of the newly flexible container.
+
+### Bug 17: Browser `<select>` Element Value Desync on Reactive Updates
+- **Target:** `ContractDetailPane.js` (Status Selection)
+- **Symptom:** The native HTML `<select>` element consistently defaulted to the last option ('Expired') upon initial render, even when the underlying DOMQL state was correctly set to 'Active' or 'Pending'. 
+- **Wrong Solution:** Attempting to force the selection via `attr: { selected: ... }`, `onInit` property assignments, or `setTimeout(0)` hooks. Native dropdowns have complex, non-deterministic browser-level property matching that often ignores Virtual DOM attribute changes during the hydration/mount cycle.
+- **Right Solution:** Refactor the selection UI into a set of interactive "Radio Chips" (mapped `Flex` components). By bypassing the native `<select>` and `<option>` tags entirely, you eliminate the hidden DOM property syncing issue. The selection logic becomes a purely declarative CSS binding (`borderColor: s.status === v ? 'secured' : ...`) which is 100% reliable in the DOMQL rendering pipeline.
+
+---
+
+### Bug 18: Build Failure Due to Backup File Renaming
+- **Target:** `ContractsPage.js` & `index.js`
+- **Symptom:** Running `smbls start` resulting in a `@parcel/core` build failure: `Failed to resolve './ContractsPage.js' from './symbols/pages/index.js'`. Parcel specifically suggested the existence of a backup file: `💡 Did you mean './ContractsPage.js.bak'?`.
+- **Wrong Solution:** Editing the import statement in `index.js` to point to the `.bak` file, which might temporarily resolve the module but exposes incomplete/backup code and violates conventional `.js` extensions for DOMQL component entry points.
+- **Right Solution:** Rename the mistakenly generated `ContractsPage.js.bak` file back to `ContractsPage.js`. Module resolution strictly expects exact file matches in `symbols/pages/index.js`.
+
 ---
 
 ## 4. Character Counts
 *Updates after each prompt to track token usage.*
 
-- **Prompt Input Running Subtotal:** ~8,200 characters
-- **Code Output Running Subtotal:** ~36,100 characters
-- **Total:** ~44,300 characters
+- **Prompt Input Running Subtotal:** ~8,500 characters
+- **Code Output Running Subtotal:** ~37,000 characters
+- **Total:** ~45,500 characters

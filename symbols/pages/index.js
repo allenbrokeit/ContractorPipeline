@@ -1,3 +1,7 @@
+import { main } from './main.js'
+import { ContractsPage } from './ContractsPage.js'
+
 export default {
-  extend: 'DashboardLayout'
+  '/': main,
+  '/contracts': ContractsPage
 }

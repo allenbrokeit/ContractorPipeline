@@ -1,6 +1,8 @@
+const currentDateStr = new Date().toISOString()
+
 export default {
   // Global dashboard states
-  currentDate: new Date().toISOString(),
+  currentDate: currentDateStr,
   targetMonthlyThreshold: 1500,
 
   // UI State toggles
@@ -98,7 +100,7 @@ export default {
       endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 4, 15).toISOString(),   // Ends in 4 months
       durationMonths: 3,
       monthlyValue: 2500,
-      status: 'Active'
+      status: 'Pending'
     },
     {
       id: 'ac_3',
@@ -109,7 +111,7 @@ export default {
       endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 9, 0).toISOString(),   // Runs 6 months
       durationMonths: 6,
       monthlyValue: 3000,
-      status: 'Active'
+      status: 'Pending'
     },
     {
       id: 'ac_4',
@@ -120,7 +122,7 @@ export default {
       endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 2, 0).toISOString(),   // Runs 1 month
       durationMonths: 1,
       monthlyValue: 4000,
-      status: 'Active'
+      status: 'Pending'
     }
   ]
 }

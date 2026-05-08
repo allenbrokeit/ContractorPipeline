@@ -26,7 +26,7 @@ export const TopNavbar = {
       extends: 'Link',
       href: '/',
       text: 'Pipeline',
-      color: (el) => window.location.pathname === '/' ? 'white' : 'textSecondary',
+      color: 'textSecondary',
       textDecoration: 'none',
       fontWeight: '600'
     },
@@ -35,7 +35,7 @@ export const TopNavbar = {
       extends: 'Link',
       href: '/contracts',
       text: 'Active Contracts',
-      color: (el) => window.location.pathname === '/contracts' ? 'white' : 'textSecondary',
+      color: 'textSecondary',
       textDecoration: 'none',
       fontWeight: '600'
     }

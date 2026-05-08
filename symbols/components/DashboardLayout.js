@@ -5,26 +5,26 @@ export const DashboardLayout = {
   gap: 'B',
 
   Grid: {
-    extend: 'Grid',
+    extends: 'Grid',
     props: {
       gridTemplateColumns: '1fr',
       gap: 'B'
     },
     
     TopSection: {
-      extend: 'Flex',
+      extends: 'Flex',
       props: { flexDirection: 'column', gap: 'A' },
-      FinancialHealthGauge: { extend: 'FinancialHealthGauge' },
-      TimelineGantt: { extend: 'TimelineGantt' }
+      FinancialHealthGauge: { extends: 'FinancialHealthGauge' },
+      TimelineGantt: { extends: 'TimelineGantt' }
     },
 
     BottomSection: {
-      extend: 'Flex',
+      extends: 'Flex',
       props: { flexDirection: 'column', gap: 'A' },
       SectionTitle: { tag: 'h2', props: { text: 'Active Pipeline', color: 'white' } },
-      ProposalKanbanBoard: { extend: 'ProposalKanbanBoard' }
+      ProposalKanbanBoard: { extends: 'ProposalKanbanBoard' }
     }
   },
 
-  ContractFormModal: { extend: 'ContractFormModal' }
+  ContractFormModal: { extends: 'ContractFormModal' }
 }

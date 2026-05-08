@@ -279,11 +279,25 @@ display: 'flex', // CLI warns on deployment build/bundling.
 - **Wrong Solution:** Relying on `position: 'absolute'` with a `left` offset for the inner blocks while assigning a fixed `height: '24px'` to the parent track. Because absolute positioning removes the element from the document flow, the parent container is entirely blind to the inner block's calculated height and cannot grow dynamically.
 - **Right Solution:** Keep the blocks within the document flow to allow natural height expansion. By removing `position: 'absolute'`, changing `left:` to `marginLeft:`, and replacing fixed `height` constraints with `minHeight`, the inner block naturally pushes the parent container's height downward whenever text wraps, preserving the layout integrity automatically. Adding `boxSizing: 'border-box'` and internal `padding` ensures the text doesn't hit the absolute edges of the newly flexible container.
 
+### Bug 17: Browser `<select>` Element Value Desync on Reactive Updates
+- **Target:** `ContractDetailPane.js` (Status Selection)
+- **Symptom:** The native HTML `<select>` element consistently defaulted to the last option ('Expired') upon initial render, even when the underlying DOMQL state was correctly set to 'Active' or 'Pending'. 
+- **Wrong Solution:** Attempting to force the selection via `attr: { selected: ... }`, `onInit` property assignments, or `setTimeout(0)` hooks. Native dropdowns have complex, non-deterministic browser-level property matching that often ignores Virtual DOM attribute changes during the hydration/mount cycle.
+- **Right Solution:** Refactor the selection UI into a set of interactive "Radio Chips" (mapped `Flex` components). By bypassing the native `<select>` and `<option>` tags entirely, you eliminate the hidden DOM property syncing issue. The selection logic becomes a purely declarative CSS binding (`borderColor: s.status === v ? 'secured' : ...`) which is 100% reliable in the DOMQL rendering pipeline.
+
+---
+
+### Bug 18: Build Failure Due to Backup File Renaming
+- **Target:** `ContractsPage.js` & `index.js`
+- **Symptom:** Running `smbls start` resulting in a `@parcel/core` build failure: `Failed to resolve './ContractsPage.js' from './symbols/pages/index.js'`. Parcel specifically suggested the existence of a backup file: `💡 Did you mean './ContractsPage.js.bak'?`.
+- **Wrong Solution:** Editing the import statement in `index.js` to point to the `.bak` file, which might temporarily resolve the module but exposes incomplete/backup code and violates conventional `.js` extensions for DOMQL component entry points.
+- **Right Solution:** Rename the mistakenly generated `ContractsPage.js.bak` file back to `ContractsPage.js`. Module resolution strictly expects exact file matches in `symbols/pages/index.js`.
+
 ---
 
 ## 4. Character Counts
 *Updates after each prompt to track token usage.*
 
-- **Prompt Input Running Subtotal:** ~8,200 characters
-- **Code Output Running Subtotal:** ~36,100 characters
-- **Total:** ~44,300 characters
+- **Prompt Input Running Subtotal:** ~8,500 characters
+- **Code Output Running Subtotal:** ~37,000 characters
+- **Total:** ~45,500 characters

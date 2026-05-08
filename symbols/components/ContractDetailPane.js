@@ -79,25 +79,30 @@ export const ContractDetailPane = {
           flexDirection: 'column',
           gap: 'Y',
           Label: { tag: 'label', text: 'Status', color: 'textSecondary' },
-          Select: {
-            tag: 'select',
-            padding: 'Z',
-            background: 'bgPrimary',
-            color: 'white',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: 'W',
-            onChange: (e, el, s) => s.update({ status: e.target.value }),
+          StatusOptions: {
+            extends: 'Flex',
+            gap: 'Z',
             childExtends: {
-              tag: 'option',
-              value: (el, s) => s.val,
+              extends: 'Flex',
+              padding: 'Z Y',
+              borderRadius: 'V',
+              cursor: 'pointer',
+              fontSize: 'Z',
+              fontWeight: '600',
+              border: '1px solid',
+              borderColor: (el, s) => el.parent.state.status === s.val ? 'secured' : 'rgba(255,255,255,0.1)',
+              background: (el, s) => el.parent.state.status === s.val ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+              color: (el, s) => el.parent.state.status === s.val ? 'secured' : 'textSecondary',
+              transition: 'all 0.2s ease',
               text: (el, s) => s.label,
-              attr: { selected: (el, s) => s.isSelected || null }
+              onClick: (e, el, s) => el.parent.state.update({ status: s.val, isStatusManuallySet: true })
             },
             childrenAs: 'state',
-            children: (el, s) => [
-              { val: 'Active', label: 'Active', isSelected: s.status === 'Active' },
-              { val: 'Renegotiating', label: 'Renegotiating', isSelected: s.status === 'Renegotiating' },
-              { val: 'Expired', label: 'Expired', isSelected: s.status === 'Expired' }
+            children: [
+              { val: 'Pending', label: 'Pending' },
+              { val: 'Active', label: 'Active' },
+              { val: 'Renegotiating', label: 'Renegotiating' },
+              { val: 'Expired', label: 'Expired' }
             ]
           }
         },
@@ -116,7 +121,19 @@ export const ContractDetailPane = {
               border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 'W',
               style: { colorScheme: 'dark' },
               value: (el, s) => s.startDate ? s.startDate.split('T')[0] : '',
-              onInput: (e, el, s) => s.update({ startDate: new Date(e.target.value).toISOString() })
+              onInput: (e, el, s) => {
+                const newStart = new Date(e.target.value).toISOString();
+                const updates = { startDate: newStart };
+                if (!s.isStatusManuallySet) {
+                  const nowMs = new Date(el.getRootState().currentDate).getTime();
+                  const startMs = new Date(newStart).getTime();
+                  const endMs = new Date(new Date(newStart).getFullYear(), new Date(newStart).getMonth() + s.durationMonths, new Date(newStart).getDate()).getTime();
+                  if (nowMs < startMs) updates.status = 'Pending';
+                  else if (nowMs > endMs) updates.status = 'Expired';
+                  else updates.status = 'Active';
+                }
+                s.update(updates);
+              }
             }
           },
           Duration: {
@@ -127,7 +144,19 @@ export const ContractDetailPane = {
               padding: 'Z', background: 'bgPrimary', color: 'white',
               border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 'W',
               value: (el, s) => s.durationMonths,
-              onInput: (e, el, s) => s.update({ durationMonths: parseInt(e.target.value, 10) || 1 })
+              onInput: (e, el, s) => {
+                const dur = parseInt(e.target.value, 10) || 1;
+                const updates = { durationMonths: dur };
+                if (!s.isStatusManuallySet) {
+                  const nowMs = new Date(el.getRootState().currentDate).getTime();
+                  const startMs = new Date(s.startDate).getTime();
+                  const endMs = new Date(new Date(s.startDate).getFullYear(), new Date(s.startDate).getMonth() + dur, new Date(s.startDate).getDate()).getTime();
+                  if (nowMs < startMs) updates.status = 'Pending';
+                  else if (nowMs > endMs) updates.status = 'Expired';
+                  else updates.status = 'Active';
+                }
+                s.update(updates);
+              }
             }
           },
           MonthlyValue: {
@@ -138,7 +167,9 @@ export const ContractDetailPane = {
               padding: 'Z', background: 'bgPrimary', color: 'white',
               border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 'W',
               value: (el, s) => s.monthlyValue,
-              onInput: (e, el, s) => s.update({ monthlyValue: parseInt(e.target.value, 10) || 0 })
+              onInput: (e, el, s) => {
+                s.update({ monthlyValue: parseInt(e.target.value, 10) || 0 })
+              }
             }
           }
         }
@@ -179,8 +210,7 @@ export const ContractDetailPane = {
     childrenAs: 'state',
     children: (el, s) => {
       const contract = s.root.contracts?.find(c => c.id === s.root.selectedContractId)
-      // Return a deep copy in an array of 1. The deep copy prevents
-      // un-saved keystrokes from mutating the live list view.
+      // Return a deep copy in an array of 1.
       return contract ? [JSON.parse(JSON.stringify(contract))] : []
     }
   }

@@ -1,9 +1,9 @@
 export const ProposalKanbanBoard = {
-  extend: 'Flex',
+  extends: 'Flex',
   props: { gap: 'A', width: '100%', overflowX: 'auto', paddingBottom: 'A' },
   
   childExtends: {
-    extend: 'Flex',
+    extends: 'Flex',
     props: {
       flexDirection: 'column',
       gap: 'Y',
@@ -22,10 +22,10 @@ export const ProposalKanbanBoard = {
     },
 
     Cards: {
-      extend: 'Flex',
+      extends: 'Flex',
       props: { flexDirection: 'column', gap: 'Y', paddingTop: 'Y' },
       childExtends: {
-        extend: 'Flex',
+        extends: 'Flex',
         props: {
           flexDirection: 'column',
           gap: 'X',
@@ -53,7 +53,7 @@ export const ProposalKanbanBoard = {
         Value: { props: { text: (el, s) => `$${s.estimatedMonthlyValue}/mo (${s.status === 'Closed' ? s.proposedDurationMonths + ' mos' : 'TBD'})`, color: 'secured', fontSize: 'Y', fontWeight: '600' } },
         
         Actions: {
-          extend: 'Flex',
+          extends: 'Flex',
           props: { gap: 'X', marginTop: 'X' },
           childExtends: {
             tag: 'button',

@@ -10,8 +10,8 @@ export const ContractDetailPane = {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    if: (el, s) => !s.root.selectedContractId,
-    text: 'Select a contract to view details',
+    if: (el, s) => !s.root.selectedProjectId,
+    text: 'Select a project to view details',
     color: 'textSecondary',
     fontSize: 'C'
   },
@@ -19,7 +19,7 @@ export const ContractDetailPane = {
   EditorContainer: {
     extends: 'Flex',
     flex: 1,
-    if: (el, s) => !!s.root.selectedContractId,
+    if: (el, s) => !!s.root.selectedProjectId,
     
     childExtends: {
       extends: 'Flex',
@@ -34,19 +34,46 @@ export const ContractDetailPane = {
         borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
         paddingBottom: 'B',
         
-        Title: {
-          tag: 'h1',
-          text: 'Edit Contract',
-          color: 'white',
-          margin: 0
+        TitleGroup: {
+          extends: 'Flex',
+          flexDirection: 'column',
+          gap: 'Z',
+          Title: {
+            tag: 'h1',
+            text: 'Project Details',
+            color: 'white',
+            margin: 0
+          },
+          ClientName: {
+            color: 'textSecondary',
+            fontSize: 'B',
+            text: (el, s) => {
+              const client = s.root.clients?.find(c => c.id === s.clientId)
+              return client ? client.name : ''
+            }
+          }
         },
-        
-        ClientName: {
-          color: 'textSecondary',
-          fontSize: 'B',
-          text: (el, s) => {
-            const client = s.root.clients?.find(c => c.id === s.clientId)
-            return client ? client.name : ''
+
+        ContactInfo: {
+          extends: 'Flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          gap: 'Z',
+          Email: {
+            color: 'textSecondary',
+            fontSize: 'Z',
+            text: (el, s) => {
+              const client = s.root.clients?.find(c => c.id === s.clientId)
+              return client?.contactEmail || 'No Email'
+            }
+          },
+          Phone: {
+            color: 'textSecondary',
+            fontSize: 'Z',
+            text: (el, s) => {
+              const client = s.root.clients?.find(c => c.id === s.clientId)
+              return client?.contactPhone || 'No Phone'
+            }
           }
         }
       },
@@ -55,7 +82,7 @@ export const ContractDetailPane = {
         extends: 'Flex',
         flexDirection: 'column',
         gap: 'B',
-        maxWidth: '600px',
+        maxWidth: '700px',
         
         TitleGroup: {
           extends: 'Flex',
@@ -82,6 +109,7 @@ export const ContractDetailPane = {
           StatusOptions: {
             extends: 'Flex',
             gap: 'Z',
+            flexWrap: 'wrap',
             childExtends: {
               extends: 'Flex',
               padding: 'Z Y',
@@ -99,10 +127,12 @@ export const ContractDetailPane = {
             },
             childrenAs: 'state',
             children: [
+              { val: 'Lead', label: 'Lead' },
+              { val: 'Pitched', label: 'Pitched' },
+              { val: 'Negotiating', label: 'Negotiating' },
               { val: 'Pending', label: 'Pending' },
               { val: 'Active', label: 'Active' },
-              { val: 'Renegotiating', label: 'Renegotiating' },
-              { val: 'Expired', label: 'Expired' }
+              { val: 'Declined', label: 'Declined' }
             ]
           }
         },
@@ -123,16 +153,7 @@ export const ContractDetailPane = {
               value: (el, s) => s.startDate ? s.startDate.split('T')[0] : '',
               onInput: (e, el, s) => {
                 const newStart = new Date(e.target.value).toISOString();
-                const updates = { startDate: newStart };
-                if (!s.isStatusManuallySet) {
-                  const nowMs = new Date(el.getRootState().currentDate).getTime();
-                  const startMs = new Date(newStart).getTime();
-                  const endMs = new Date(new Date(newStart).getFullYear(), new Date(newStart).getMonth() + s.durationMonths, new Date(newStart).getDate()).getTime();
-                  if (nowMs < startMs) updates.status = 'Pending';
-                  else if (nowMs > endMs) updates.status = 'Expired';
-                  else updates.status = 'Active';
-                }
-                s.update(updates);
+                s.update({ startDate: newStart });
               }
             }
           },
@@ -146,16 +167,7 @@ export const ContractDetailPane = {
               value: (el, s) => s.durationMonths,
               onInput: (e, el, s) => {
                 const dur = parseInt(e.target.value, 10) || 1;
-                const updates = { durationMonths: dur };
-                if (!s.isStatusManuallySet) {
-                  const nowMs = new Date(el.getRootState().currentDate).getTime();
-                  const startMs = new Date(s.startDate).getTime();
-                  const endMs = new Date(new Date(s.startDate).getFullYear(), new Date(s.startDate).getMonth() + dur, new Date(s.startDate).getDate()).getTime();
-                  if (nowMs < startMs) updates.status = 'Pending';
-                  else if (nowMs > endMs) updates.status = 'Expired';
-                  else updates.status = 'Active';
-                }
-                s.update(updates);
+                s.update({ durationMonths: dur });
               }
             }
           },
@@ -191,27 +203,22 @@ export const ContractDetailPane = {
           cursor: 'pointer',
           onClick: (e, el, s) => {
             const rootState = el.getRootState()
-            const start = new Date(s.startDate)
-            const endDate = new Date(start.getFullYear(), start.getMonth() + s.durationMonths, start.getDate()).toISOString()
-            
-            const contracts = rootState.contracts.map(c => {
+            const projects = rootState.projects.map(c => {
               if (c.id === s.id) {
-                // Merge the localized editable state back into the real contract
-                return { ...s.parse(), endDate }
+                // Merge the localized editable state back into the real project
+                return { ...s.parse() }
               }
               return c
             })
-            
-            rootState.update({ contracts })
+            rootState.update({ projects })
           }
         }
       }
     },
     childrenAs: 'state',
     children: (el, s) => {
-      const contract = s.root.contracts?.find(c => c.id === s.root.selectedContractId)
-      // Return a deep copy in an array of 1.
-      return contract ? [JSON.parse(JSON.stringify(contract))] : []
+      const project = s.root.projects?.find(c => c.id === s.root.selectedProjectId)
+      return project ? [JSON.parse(JSON.stringify(project))] : []
     }
   }
 }

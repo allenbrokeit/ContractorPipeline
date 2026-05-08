@@ -12,7 +12,7 @@ export const ContractListPane = {
     gap: 'Z',
     borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
     
-    Title: { tag: 'h2', text: 'Active Contracts', color: 'textPrimary', margin: 0 },
+    Title: { tag: 'h2', text: (el, s) => s.pageTitle || 'Contracts', color: 'textPrimary', margin: 0 },
     
     SortSelect: {
       tag: 'select',
@@ -22,7 +22,6 @@ export const ContractListPane = {
       border: '1px solid rgba(255,255,255,0.1)',
       borderRadius: 'W',
       onChange: (e, el, s) => {
-        console.log('SORT CHANGED TO:', e.target.value)
         el.getRootState().update({ contractSortBy: e.target.value })
       },
       childExtends: {
@@ -54,10 +53,10 @@ export const ContractListPane = {
       padding: 'B',
       borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
       cursor: 'pointer',
-      background: (el, s) => el.getRootState().selectedContractId === s.id ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+      background: (el, s) => el.getRootState().selectedProjectId === s.id ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
       transition: 'background 0.2s',
       ':hover': { background: 'rgba(255, 255, 255, 0.05)' },
-      onClick: (e, el, s) => el.getRootState().update({ selectedContractId: s.id }),
+      onClick: (e, el, s) => el.getRootState().update({ selectedProjectId: s.id }),
       
       ClientName: {
         color: 'textPrimary',
@@ -78,7 +77,7 @@ export const ContractListPane = {
         justifyContent: 'space-between',
         fontSize: 'Y',
         Status: {
-          color: (el, s) => s.status === 'Active' ? 'secured' : 'textSecondary',
+          color: (el, s) => ['Active', 'Pending'].includes(s.status) ? 'secured' : 'textSecondary',
           text: (el, s) => s.status
         },
         Value: {
@@ -89,7 +88,11 @@ export const ContractListPane = {
     },
     childrenAs: 'state',
     children: (el, s) => {
-      const contracts = [...(s.root.contracts || [])]
+      let filterStatus = s.filterStatus || ['Active', 'Pending']
+      if (!Array.isArray(filterStatus)) filterStatus = [filterStatus]
+      
+      const filtered = (s.root.projects || []).filter(p => filterStatus.includes(p.status))
+      const contracts = [...filtered]
       const sortBy = s.root.contractSortBy || 'recent'
       
       if (sortBy === 'name') {

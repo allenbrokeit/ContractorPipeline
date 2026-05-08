@@ -45,13 +45,13 @@ export const FinancialHealthGauge = {
         height: '100%',
         width: (el, s) => {
           const target = s.root.targetMonthlyThreshold || 1500
-          const val = s.isProposal ? s.estimatedMonthlyValue : s.monthlyValue
-          return `${target > 0 ? (val / target) * 100 : 0}%`
+          return `${target > 0 ? (s.monthlyValue / target) * 100 : 0}%`
         },
         background: (el, s) => {
-          const contracts = s.root.contracts || []
+          const projects = s.root.projects || []
+          const securedProjects = projects.filter(p => ['Active', 'Pending'].includes(p.status))
           const target = s.root.targetMonthlyThreshold || 1500
-          const currentSum = contracts.reduce((acc, curr) => acc + curr.monthlyValue, 0)
+          const currentSum = securedProjects.reduce((acc, curr) => acc + curr.monthlyValue, 0)
           const isHealthy = currentSum >= target
           return s.isProposal ? 'rgba(59, 130, 246, 0.4)' : (isHealthy ? 'secured' : 'atRisk')
         },
@@ -59,18 +59,17 @@ export const FinancialHealthGauge = {
         transition: 'width 0.3s ease, background 0.3s ease',
         attr: {
           title: (el, s) => {
-            const val = s.isProposal ? s.estimatedMonthlyValue : s.monthlyValue
-            return `${s.title}: $${val}/mo${s.isProposal ? ' (Pipeline)' : ''}`
+            return `${s.title}: $${s.monthlyValue}/mo${s.isProposal ? ' (Pipeline)' : ''}`
           }
         }
       },
       childrenAs: 'state',
       children: (el, s) => {
-        const contracts = s.root.contracts || []
-        const pipeline = (s.root.proposals || [])
-          .filter(p => p.status !== 'Closed')
-          .map(p => ({ ...p, isProposal: true }))
-        return [...contracts, ...pipeline]
+        const projects = (s.root.projects || []).filter(p => p.status !== 'Declined')
+        return projects.map(p => {
+          const isProposal = ['Lead', 'Pitched', 'Negotiating'].includes(p.status)
+          return { ...p, isProposal }
+        })
       }
     },
 
@@ -94,10 +93,11 @@ export const FinancialHealthGauge = {
     
     Current: {
       text: (el, s) => {
-        const contracts = s.root.contracts || []
-        const proposals = (s.root.proposals || []).filter(p => p.status !== 'Closed')
-        const currentSum = contracts.reduce((acc, curr) => acc + curr.monthlyValue, 0)
-        const pipeSum = proposals.reduce((acc, curr) => acc + curr.estimatedMonthlyValue, 0)
+        const projects = s.root.projects || []
+        const secured = projects.filter(p => ['Active', 'Pending'].includes(p.status))
+        const pipeline = projects.filter(p => ['Lead', 'Pitched', 'Negotiating'].includes(p.status))
+        const currentSum = secured.reduce((acc, curr) => acc + curr.monthlyValue, 0)
+        const pipeSum = pipeline.reduce((acc, curr) => acc + curr.monthlyValue, 0)
         return `$${currentSum} secured` + (pipeSum > 0 ? ` + $${pipeSum} pipeline` : '')
       }
     },

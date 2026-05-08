@@ -301,3 +301,15 @@ display: 'flex', // CLI warns on deployment build/bundling.
 - **Prompt Input Running Subtotal:** ~8,500 characters
 - **Code Output Running Subtotal:** ~37,000 characters
 - **Total:** ~45,500 characters
+
+### Phase 1: Pipeline Unification
+**Date:** 2026-05-08
+**Context:** Abstracting Active Contracts Page to support a fully dynamic pipeline (Lead -> Pitched -> Negotiating -> Active -> Declined).
+**Solution:** Unified `proposals` and `contracts` into a single `projects` array in `state.js` to ensure the DOMQL VDOM proxy diffing engine can track the object lifecycle completely without tearing down. Replaced the `ContractsPage` component with a `BaseProjectPage` template that accepts a `statusFilter` from child route pages (e.g., `LeadPage`, `PitchedPage`, `InactiveContractsPage`).
+**Key Learnings:** Abstracting page structures via an `extends: BaseProjectPage` template with localized state injection keeps routing lightweight. DOMQL automatically proxies the data cleanly since the editor updates `projects` directly.
+
+### Final UI Verification
+**Date:** 2026-05-08
+**Test Performed:** Automated UI Testing via Browser Agent.
+**Result:** The pipeline routing logic executed flawlessly. Clicking a block correctly updated `selectedProjectId` and transitioned to the specific pipeline page. The `ContractDetailPane` correctly rendered the dynamic `ContactInfo` block by fetching email and phone properties off the global `clients` object. Moving a Lead to "Declined" successfully updated the global list tracking, automatically syncing the item into the Inactive Contracts view while keeping the remaining lists clean.
+**Status:** Fully Verified.

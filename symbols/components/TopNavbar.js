@@ -23,21 +23,28 @@ export const TopNavbar = {
     gap: 'B',
     
     PipelineLink: {
-      extends: 'Link',
-      href: '/',
-      text: 'Pipeline',
-      color: 'textSecondary',
-      textDecoration: 'none',
-      fontWeight: '600'
+      extends: 'Link', href: '/', text: 'Dashboard',
+      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
     },
-    
+    LeadLink: {
+      extends: 'Link', href: '/lead', text: 'Leads',
+      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
+    },
+    PitchedLink: {
+      extends: 'Link', href: '/pitched', text: 'Pitched',
+      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
+    },
+    NegotiatingLink: {
+      extends: 'Link', href: '/negotiating', text: 'Negotiating',
+      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
+    },
     ContractsLink: {
-      extends: 'Link',
-      href: '/contracts',
-      text: 'Active Contracts',
-      color: 'textSecondary',
-      textDecoration: 'none',
-      fontWeight: '600'
+      extends: 'Link', href: '/contracts', text: 'Active Contracts',
+      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
+    },
+    InactiveLink: {
+      extends: 'Link', href: '/inactive', text: 'Inactive',
+      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
     }
   }
 }

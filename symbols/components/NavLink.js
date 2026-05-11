@@ -15,12 +15,16 @@ export const NavLink = {
     
     if (isActive && el.node) {
       const { offsetLeft, offsetWidth } = el.node
-      const parentState = el.parent.state
-      if (parentState && (Math.abs(parentState.indicatorLeft - offsetLeft) > 0.1 || 
-          Math.abs(parentState.indicatorWidth - offsetWidth) > 0.1)) {
-        parentState.update({
+      const rootState = el.getRootState()
+      
+      const currentLeft = rootState.indicatorLeft || 0
+      const currentWidth = rootState.indicatorWidth || 0
+
+      if (Math.abs(currentLeft - offsetLeft) > 0.1 || Math.abs(currentWidth - offsetWidth) > 0.1) {
+        rootState.update({
           indicatorLeft: offsetLeft,
-          indicatorWidth: offsetWidth
+          indicatorWidth: offsetWidth,
+          indicatorInitialized: true
         })
       }
     }

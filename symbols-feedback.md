@@ -324,3 +324,7 @@ display: 'flex', // CLI warns on deployment build/bundling.
 **Cause:** Used `el.props.href` instead of the flattened `el.href` required by DOMQL 3 syntax.
 **Fix:** Accessed `el.href` directly and added defensive checks for `el.node` presence before measuring offsets.
 **Right Solution:** Use `el.X` for all element properties in reactive functions. Use `onRender` with a minimal timeout to ensure the browser has computed layout values like `offsetLeft` before syncing to state.
+
+**Bug Found:** Lightbar animated from 0 on every page load ("races into position from the left").
+**Cause:** The TopNavbar was destroyed and re-mounted on every page load because it is nested inside individual page components via DashboardLayout. Local component state resets to 0 upon remount.
+**Fix:** Moved indicator position tracking (`indicatorLeft`, `indicatorWidth`) to the global root state (`s.root`). Additionally, conditionally disabled the CSS transition if `indicatorInitialized` is false to prevent the initial load animation from 0, allowing for seamless transition from previous layout state.

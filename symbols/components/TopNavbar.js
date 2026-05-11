@@ -21,30 +21,64 @@ export const TopNavbar = {
   NavLinks: {
     extends: 'Flex',
     gap: 'B',
+    position: 'relative',
     
-    PipelineLink: {
-      extends: 'Link', href: '/', text: 'Dashboard',
-      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
+    state: {
+      indicatorLeft: 0,
+      indicatorWidth: 0
     },
-    LeadLink: {
-      extends: 'Link', href: '/lead', text: 'Leads',
-      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
+
+    Indicator: {
+      position: 'absolute',
+      bottom: '-6px',
+      height: '3px',
+      background: '#10B981',
+      boxShadow: '0 0 15px 2px rgba(16, 185, 129, 0.6)',
+      borderRadius: 'full',
+      zIndex: 10,
+      transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      left: (el, s) => s.indicatorLeft + 'px',
+      width: (el, s) => s.indicatorWidth + 'px'
     },
-    PitchedLink: {
-      extends: 'Link', href: '/pitched', text: 'Pitched',
-      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
+
+    childExtends: {
+      extends: 'Link',
+      color: 'textSecondary',
+      textDecoration: 'none',
+      fontWeight: '600',
+      transition: 'color 0.2s ease',
+      '.active': {
+        color: 'white'
+      },
+      
+      onUpdate: (el, s) => {
+        const { pathname } = window.location
+        const href = el.href
+        const isActive = href === pathname || (pathname === '/' && href === '/')
+        
+        if (isActive && el.node) {
+          const { offsetLeft, offsetWidth } = el.node
+          // Use el.parent.state directly
+          if (Math.abs(el.parent.state.indicatorLeft - offsetLeft) > 0.1 || 
+              Math.abs(el.parent.state.indicatorWidth - offsetWidth) > 0.1) {
+            el.parent.state.update({
+              indicatorLeft: offsetLeft,
+              indicatorWidth: offsetWidth
+            })
+          }
+        }
+      },
+      onRender: (el, s) => {
+        // Initial measurement
+        setTimeout(() => el.onUpdate(el, s), 100)
+      }
     },
-    NegotiatingLink: {
-      extends: 'Link', href: '/negotiating', text: 'Negotiating',
-      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
-    },
-    ContractsLink: {
-      extends: 'Link', href: '/contracts', text: 'Active Contracts',
-      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
-    },
-    InactiveLink: {
-      extends: 'Link', href: '/inactive', text: 'Inactive',
-      color: 'textSecondary', textDecoration: 'none', fontWeight: '600'
-    }
+
+    Dashboard: { extends: 'NavLink', href: '/', text: 'Dashboard' },
+    Leads: { extends: 'NavLink', href: '/lead', text: 'Leads' },
+    Pitched: { extends: 'NavLink', href: '/pitched', text: 'Pitched' },
+    Negotiating: { extends: 'NavLink', href: '/negotiating', text: 'Negotiating' },
+    Active: { extends: 'NavLink', href: '/contracts', text: 'Active Contracts' },
+    Inactive: { extends: 'NavLink', href: '/inactive', text: 'Inactive' }
   }
 }

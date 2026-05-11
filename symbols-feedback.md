@@ -313,3 +313,14 @@ display: 'flex', // CLI warns on deployment build/bundling.
 **Test Performed:** Automated UI Testing via Browser Agent.
 **Result:** The pipeline routing logic executed flawlessly. Clicking a block correctly updated `selectedProjectId` and transitioned to the specific pipeline page. The `ContractDetailPane` correctly rendered the dynamic `ContactInfo` block by fetching email and phone properties off the global `clients` object. Moving a Lead to "Declined" successfully updated the global list tracking, automatically syncing the item into the Inactive Contracts view while keeping the remaining lists clean.
 **Status:** Fully Verified.
+
+### Navigation Indicator Implementation
+**Date:** 2026-05-12
+**Context:** Adding an animated sliding indicator to the TopNavbar to highlight the active route.
+**Solution:** Refactored `NavLinks` into a dynamic collection using `childExtends` and `children`. Implemented an `Indicator` component with absolute positioning and transition properties. Added `onUpdate` and `onRender` lifecycle hooks to links to measure their DOM coordinates (`offsetLeft`, `offsetWidth`) and sync them to a local state in `NavLinks`. Used the `secured` green token with a glow effect for the "light bar" aesthetic.
+**Key Learnings:** Relying on `window.location.pathname` within `onUpdate` allows for reliable route detection in the absence of a dedicated router state signal. Measuring DOM nodes in lifecycle hooks is a robust way to handle dynamic layouts (like variable link text widths) while maintaining a high-performance sliding animation.
+
+**Bug Found:** `TypeError: Cannot read properties of undefined (reading "href")` in TopNavbar indicator logic.
+**Cause:** Used `el.props.href` instead of the flattened `el.href` required by DOMQL 3 syntax.
+**Fix:** Accessed `el.href` directly and added defensive checks for `el.node` presence before measuring offsets.
+**Right Solution:** Use `el.X` for all element properties in reactive functions. Use `onRender` with a minimal timeout to ensure the browser has computed layout values like `offsetLeft` before syncing to state.

@@ -123,10 +123,16 @@ export const TimelineGantt = {
           attr: { title: (el, s) => s.title },
           cursor: 'pointer',
           onClick: (e, el, s) => {
-            if (!s.isProposal) {
-              el.getRootState().update({ selectedContractId: s.id })
-              el.router('/contracts', el.getRoot())
-            }
+            el.getRootState().update({ selectedProjectId: s.id })
+            
+            let route = '/'
+            if (s.status === 'Lead') route = '/lead'
+            else if (s.status === 'Pitched') route = '/pitched'
+            else if (s.status === 'Negotiating') route = '/negotiating'
+            else if (s.status === 'Active' || s.status === 'Pending') route = '/contracts'
+            else if (s.status === 'Declined') route = '/inactive'
+            
+            el.router(route, el.getRoot())
           },
           transition: 'transform 0.2s ease, filter 0.2s ease, z-index 0s',
           ':hover': {
@@ -139,17 +145,14 @@ export const TimelineGantt = {
     },
     childrenAs: 'state',
     children: (el, s) => {
-      const contracts = s.root.contracts || []
-      const pipeline = (s.root.proposals || [])
-        .filter(p => p.status !== 'Closed')
-        .map(p => ({
+      const projects = (s.root.projects || []).filter(p => p.status !== 'Declined')
+      return projects.map(p => {
+        const isProposal = ['Lead', 'Pitched', 'Negotiating'].includes(p.status)
+        return {
           ...p,
-          isProposal: true,
-          startDate: new Date().toISOString(), // Assuming proposals start immediately for the forecast
-          durationMonths: p.proposedDurationMonths,
-          monthlyValue: p.estimatedMonthlyValue
-        }))
-      return [...contracts, ...pipeline]
+          isProposal
+        }
+      })
     }
   }
 }

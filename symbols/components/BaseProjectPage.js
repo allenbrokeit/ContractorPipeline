@@ -1,4 +1,4 @@
-export const ContractsPage = {
+export const BaseProjectPage = {
   extends: 'Page',
   background: 'bgPrimary',
   minHeight: '100vh',

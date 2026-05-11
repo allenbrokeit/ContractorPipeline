@@ -301,3 +301,30 @@ display: 'flex', // CLI warns on deployment build/bundling.
 - **Prompt Input Running Subtotal:** ~8,500 characters
 - **Code Output Running Subtotal:** ~37,000 characters
 - **Total:** ~45,500 characters
+
+### Phase 1: Pipeline Unification
+**Date:** 2026-05-08
+**Context:** Abstracting Active Contracts Page to support a fully dynamic pipeline (Lead -> Pitched -> Negotiating -> Active -> Declined).
+**Solution:** Unified `proposals` and `contracts` into a single `projects` array in `state.js` to ensure the DOMQL VDOM proxy diffing engine can track the object lifecycle completely without tearing down. Replaced the `ContractsPage` component with a `BaseProjectPage` template that accepts a `statusFilter` from child route pages (e.g., `LeadPage`, `PitchedPage`, `InactiveContractsPage`).
+**Key Learnings:** Abstracting page structures via an `extends: BaseProjectPage` template with localized state injection keeps routing lightweight. DOMQL automatically proxies the data cleanly since the editor updates `projects` directly.
+
+### Final UI Verification
+**Date:** 2026-05-08
+**Test Performed:** Automated UI Testing via Browser Agent.
+**Result:** The pipeline routing logic executed flawlessly. Clicking a block correctly updated `selectedProjectId` and transitioned to the specific pipeline page. The `ContractDetailPane` correctly rendered the dynamic `ContactInfo` block by fetching email and phone properties off the global `clients` object. Moving a Lead to "Declined" successfully updated the global list tracking, automatically syncing the item into the Inactive Contracts view while keeping the remaining lists clean.
+**Status:** Fully Verified.
+
+### Navigation Indicator Implementation
+**Date:** 2026-05-12
+**Context:** Adding an animated sliding indicator to the TopNavbar to highlight the active route.
+**Solution:** Refactored `NavLinks` into a dynamic collection using `childExtends` and `children`. Implemented an `Indicator` component with absolute positioning and transition properties. Added `onUpdate` and `onRender` lifecycle hooks to links to measure their DOM coordinates (`offsetLeft`, `offsetWidth`) and sync them to a local state in `NavLinks`. Used the `secured` green token with a glow effect for the "light bar" aesthetic.
+**Key Learnings:** Relying on `window.location.pathname` within `onUpdate` allows for reliable route detection in the absence of a dedicated router state signal. Measuring DOM nodes in lifecycle hooks is a robust way to handle dynamic layouts (like variable link text widths) while maintaining a high-performance sliding animation.
+
+**Bug Found:** `TypeError: Cannot read properties of undefined (reading "href")` in TopNavbar indicator logic.
+**Cause:** Used `el.props.href` instead of the flattened `el.href` required by DOMQL 3 syntax.
+**Fix:** Accessed `el.href` directly and added defensive checks for `el.node` presence before measuring offsets.
+**Right Solution:** Use `el.X` for all element properties in reactive functions. Use `onRender` with a minimal timeout to ensure the browser has computed layout values like `offsetLeft` before syncing to state.
+
+**Bug Found:** Lightbar animated from 0 on every page load ("races into position from the left").
+**Cause:** The TopNavbar was destroyed and re-mounted on every page load because it is nested inside individual page components via DashboardLayout. Local component state resets to 0 upon remount.
+**Fix:** Moved indicator position tracking (`indicatorLeft`, `indicatorWidth`) to the global root state (`s.root`). Additionally, conditionally disabled the CSS transition if `indicatorInitialized` is false to prevent the initial load animation from 0, allowing for seamless transition from previous layout state.

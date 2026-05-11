@@ -43,68 +43,57 @@ export const ProposalKanbanBoard = {
             border: '1px solid rgba(255, 255, 255, 0.15)'
           }
         },
-        Title: { props: { text: (el, s) => s.title, color: 'textPrimary', fontWeight: 'bold' } },
+        Title: { text: (el, s) => s.title, color: 'textPrimary', fontWeight: 'bold' },
         Client: {
-          props: (el, s) => {
+          text: (el, s) => {
             const client = s.root.clients?.find(c => c.id === s.clientId)
-            return { text: client?.name, color: 'textSecondary', fontSize: 'Z' }
-          }
+            return client?.name || 'Unknown'
+          },
+          color: 'textSecondary',
+          fontSize: 'Z'
         },
-        Value: { props: { text: (el, s) => `$${s.estimatedMonthlyValue}/mo (${s.status === 'Closed' ? s.proposedDurationMonths + ' mos' : 'TBD'})`, color: 'secured', fontSize: 'Y', fontWeight: '600' } },
+        Value: { text: (el, s) => `$${s.monthlyValue}/mo (${s.durationMonths} mos)`, color: 'secured', fontSize: 'Y', fontWeight: '600' },
         
         Actions: {
           extends: 'Flex',
           props: { gap: 'X', marginTop: 'X' },
           childExtends: {
             tag: 'button',
-            props: {
-              padding: 'V X',
-              background: 'blue.2',
-              color: 'white',
-              border: '1px solid blue',
-              borderRadius: 'W',
-              cursor: 'pointer',
-              fontSize: 'Y',
-              text: (el, s) => s.label,
-              onClick: (event, el) => {
-                const action = el.parent.parent.state
-                const rootState = el.getRoot().state
-                
-                if (el.state.actionContent === 'Won') {
-                  // Trigger Contract Modal
-                  el.getRoot().state.update({
-                    isContractModalOpen: true,
-                    selectedProposalId: action.id
-                  })
-                } else {
-                  // Dispatch Mock API update
-                  const proposals = rootState.proposals.map(p => {
-                    if (p.id === action.id) {
-                      return { ...p, status: el.state.actionContent }
-                    }
-                    return p
-                  })
-                  rootState.update({ proposals })
-                  
-                  // Mock DB Call
-                  setTimeout(() => console.log(`[Mock DB] updated proposal ${action.id} to ${el.state.actionContent}`), 300)
+            padding: 'V X',
+            background: 'blue.2',
+            color: 'white',
+            border: '1px solid blue',
+            borderRadius: 'W',
+            cursor: 'pointer',
+            fontSize: 'Y',
+            text: (el, s) => s.label,
+            onClick: (event, el) => {
+              const actionState = el.parent.parent.state
+              const rootState = el.getRootState()
+              
+              const projects = rootState.projects.map(p => {
+                if (p.id === actionState.id) {
+                  return { ...p, status: el.state.actionContent }
                 }
-              }
+                return p
+              })
+              rootState.update({ projects })
             }
           },
           // Compute possible next actions based on current column
           children: (el, s) => {
             const status = s.status
-            if (status === 'Lead') return [{ state: { label: 'Pitch', actionContent: 'Pitched' } }]
-            if (status === 'Pitched') return [{ state: { label: 'Negotiate', actionContent: 'Negotiating' } }]
-            if (status === 'Negotiating') return [{ state: { label: 'Mark Won', actionContent: 'Won' } }]
+            if (status === 'Lead') return [{ label: 'Pitch', actionContent: 'Pitched' }]
+            if (status === 'Pitched') return [{ label: 'Negotiate', actionContent: 'Negotiating' }]
+            if (status === 'Negotiating') return [{ label: 'Mark Active', actionContent: 'Active' }]
             return []
           }
         }
       },
       // Pass states from root filtered by current column title
+      childrenAs: 'state',
       children: (el, s) => {
-        return (s.root.proposals || []).filter(p => p.status === s.title).map(p => ({ state: p }))
+        return (s.root.projects || []).filter(p => p.status === s.title).map(p => ({ ...p }))
       }
     }
   },

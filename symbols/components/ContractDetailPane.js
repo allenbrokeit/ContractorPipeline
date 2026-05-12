@@ -58,21 +58,127 @@ export const ContractDetailPane = {
           extends: 'Flex',
           flexDirection: 'column',
           alignItems: 'flex-end',
-          gap: 'Z',
-          Email: {
-            color: 'textSecondary',
-            fontSize: 'Z',
-            text: (el, s) => {
-              const client = s.root.clients?.find(c => c.id === s.clientId)
-              return client?.contactEmail || 'No Email'
+          gap: 'Y',
+          
+          state: {
+            isEditing: false,
+            email: '',
+            phone: ''
+          },
+
+          Header: {
+            extends: 'Flex',
+            gap: 'Z',
+            alignItems: 'center',
+            Title: {
+              tag: 'span',
+              text: 'Contact Info',
+              color: 'textSecondary',
+              fontSize: 'Z',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            },
+            ToggleBtn: {
+              tag: 'button',
+              padding: 'V X',
+              background: 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 'V',
+              cursor: 'pointer',
+              fontSize: 'Y',
+              text: (el, s) => s.isEditing ? 'Save' : 'Edit',
+              transition: 'background 0.2s',
+              ':hover': { background: 'rgba(255, 255, 255, 0.2)' },
+              onClick: (e, el, s) => {
+                const rootState = el.getRootState()
+                const selectedProject = rootState.projects?.find(p => p.id === rootState.selectedProjectId)
+                const targetClientId = selectedProject?.clientId
+
+                if (s.isEditing) {
+                  // Save action
+                  if (targetClientId) {
+                    const clients = rootState.clients.map(c => {
+                      if (c.id === targetClientId) {
+                        return { ...c, contactEmail: s.email, contactPhone: s.phone }
+                      }
+                      return c
+                    })
+                    rootState.update({ clients })
+                  }
+                  s.update({ isEditing: false })
+                } else {
+                  // Enter edit mode
+                  const client = rootState.clients?.find(c => c.id === targetClientId)
+                  s.update({ 
+                    isEditing: true, 
+                    email: client?.contactEmail || '',
+                    phone: client?.contactPhone || ''
+                  })
+                }
+              }
             }
           },
-          Phone: {
-            color: 'textSecondary',
-            fontSize: 'Z',
-            text: (el, s) => {
-              const client = s.root.clients?.find(c => c.id === s.clientId)
-              return client?.contactPhone || 'No Phone'
+
+          DisplayMode: {
+            extends: 'Flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: 'V',
+            if: (el, s) => !s.isEditing,
+            Email: {
+              color: 'textSecondary',
+              fontSize: 'Z',
+              text: (el, s) => {
+                const rootState = el.getRootState()
+                const project = rootState.projects?.find(p => p.id === rootState.selectedProjectId)
+                const client = rootState.clients?.find(c => c.id === project?.clientId)
+                return client?.contactEmail || 'No Email'
+              }
+            },
+            Phone: {
+              color: 'textSecondary',
+              fontSize: 'Z',
+              text: (el, s) => {
+                const rootState = el.getRootState()
+                const project = rootState.projects?.find(p => p.id === rootState.selectedProjectId)
+                const client = rootState.clients?.find(c => c.id === project?.clientId)
+                return client?.contactPhone || 'No Phone'
+              }
+            }
+          },
+
+          EditMode: {
+            extends: 'Flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: 'Z',
+            if: (el, s) => s.isEditing,
+            EmailInput: {
+              tag: 'input',
+              type: 'email',
+              placeholder: 'Email',
+              padding: 'Z',
+              background: 'bgPrimary',
+              color: 'white',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: 'W',
+              fontSize: 'Z',
+              value: (el, s) => s.email,
+              onInput: (e, el, s) => s.update({ email: e.target.value })
+            },
+            PhoneInput: {
+              tag: 'input',
+              type: 'tel',
+              placeholder: 'Phone',
+              padding: 'Z',
+              background: 'bgPrimary',
+              color: 'white',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: 'W',
+              fontSize: 'Z',
+              value: (el, s) => s.phone,
+              onInput: (e, el, s) => s.update({ phone: e.target.value })
             }
           }
         }

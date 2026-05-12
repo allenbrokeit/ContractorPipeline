@@ -328,3 +328,9 @@ display: 'flex', // CLI warns on deployment build/bundling.
 **Bug Found:** Lightbar animated from 0 on every page load ("races into position from the left").
 **Cause:** The TopNavbar was destroyed and re-mounted on every page load because it is nested inside individual page components via DashboardLayout. Local component state resets to 0 upon remount.
 **Fix:** Moved indicator position tracking (`indicatorLeft`, `indicatorWidth`) to the global root state (`s.root`). Additionally, conditionally disabled the CSS transition if `indicatorInitialized` is false to prevent the initial load animation from 0, allowing for seamless transition from previous layout state.
+
+### Kanban Card Routing
+**Date:** 2026-05-12
+**Context:** Allowing users to click a card on the Kanban board to navigate to the specific contract details page.
+**Solution:** Added an `onClick` event to the `Cards` childExtends wrapper in `ProposalKanbanBoard.js`. This handler updates the global `s.root.selectedProjectId` and calls `el.router()` with the corresponding status route (e.g., `/lead`, `/pitched`, `/negotiating`). To prevent the existing card action buttons (e.g., "Pitch", "Negotiate") from also triggering the navigation, `event.stopPropagation()` was added to their `onClick` handlers.
+**Key Learnings:** Relying on the global root state to hold `selectedProjectId` makes navigating between different list views and detail panes seamless, as the destination pane simply reads the pre-selected ID upon mount. `event.stopPropagation()` remains fully functional and crucial in DOMQL when nesting interactive components.

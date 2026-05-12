@@ -41,6 +41,17 @@ export const ProposalKanbanBoard = {
             transform: 'translateY(-4px) scale(1.01)',
             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
             border: '1px solid rgba(255, 255, 255, 0.15)'
+          },
+          onClick: (event, el) => {
+            const project = el.state
+            const routeMap = {
+              'Lead': '/lead',
+              'Pitched': '/pitched',
+              'Negotiating': '/negotiating'
+            }
+            const targetRoute = routeMap[project.status] || '/'
+            el.getRootState().update({ selectedProjectId: project.id })
+            el.router(targetRoute, el.getRoot())
           }
         },
         Title: { text: (el, s) => s.title, color: 'textPrimary', fontWeight: 'bold' },
@@ -68,6 +79,7 @@ export const ProposalKanbanBoard = {
             fontSize: 'Y',
             text: (el, s) => s.label,
             onClick: (event, el) => {
+              event.stopPropagation()
               const actionState = el.parent.parent.state
               const rootState = el.getRootState()
               
@@ -80,12 +92,11 @@ export const ProposalKanbanBoard = {
               rootState.update({ projects })
             }
           },
-          // Compute possible next actions based on current column
           children: (el, s) => {
             const status = s.status
-            if (status === 'Lead') return [{ label: 'Pitch', actionContent: 'Pitched' }]
-            if (status === 'Pitched') return [{ label: 'Negotiate', actionContent: 'Negotiating' }]
-            if (status === 'Negotiating') return [{ label: 'Mark Active', actionContent: 'Active' }]
+            if (status === 'Lead') return [{ state: { label: 'Pitch', actionContent: 'Pitched' } }]
+            if (status === 'Pitched') return [{ state: { label: 'Negotiate', actionContent: 'Negotiating' } }]
+            if (status === 'Negotiating') return [{ state: { label: 'Mark Active', actionContent: 'Active' } }]
             return []
           }
         }

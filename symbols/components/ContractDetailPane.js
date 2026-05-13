@@ -1,3 +1,33 @@
+const COUNTRY_CODES = [
+  // North America
+  { id: 'us', code: '+1', flag: '🇺🇸', name: 'United States' },
+  { id: 'ca', code: '+1', flag: '🇨🇦', name: 'Canada' },
+  { id: 'mx', code: '+52', flag: '🇲🇽', name: 'Mexico' },
+  // Europe & UK
+  { id: 'gb', code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
+  { id: 'ie', code: '+353', flag: '🇮🇪', name: 'Ireland' },
+  { id: 'no', code: '+47', flag: '🇳🇴', name: 'Norway' },
+  { id: 'be', code: '+32', flag: '🇧🇪', name: 'Belgium' },
+  { id: 'es', code: '+34', flag: '🇪🇸', name: 'Spain' },
+  { id: 'pt', code: '+351', flag: '🇵🇹', name: 'Portugal' },
+  { id: 'de', code: '+49', flag: '🇩🇪', name: 'Germany' },
+  { id: 'fr', code: '+33', flag: '🇫🇷', name: 'France' },
+  { id: 'it', code: '+39', flag: '🇮🇹', name: 'Italy' },
+  // Central & South America
+  { id: 'br', code: '+55', flag: '🇧🇷', name: 'Brazil' },
+  { id: 'ar', code: '+54', flag: '🇦🇷', name: 'Argentina' },
+  { id: 'cr', code: '+506', flag: '🇨🇷', name: 'Costa Rica' },
+  // Asia & Pacific
+  { id: 'jp', code: '+81', flag: '🇯🇵', name: 'Japan' },
+  { id: 'kr', code: '+82', flag: '🇰🇷', name: 'South Korea' },
+  { id: 'cn', code: '+86', flag: '🇨🇳', name: 'China' },
+  { id: 'my', code: '+60', flag: '🇲🇾', name: 'Malaysia' },
+  { id: 'sg', code: '+65', flag: '🇸🇬', name: 'Singapore' },
+  { id: 'ph', code: '+63', flag: '🇵🇭', name: 'Philippines' },
+  { id: 'au', code: '+61', flag: '🇦🇺', name: 'Australia' },
+  { id: 'nz', code: '+64', flag: '🇳🇿', name: 'New Zealand' }
+];
+
 export const ContractDetailPane = {
   extends: 'Flex',
   flex: 1,
@@ -95,6 +125,7 @@ export const ContractDetailPane = {
             isEditing: false,
             email: '',
             phone: '',
+            countryId: 'us',
             emailError: false,
             phoneError: false
           },
@@ -134,7 +165,7 @@ export const ContractDetailPane = {
                   let digitsOnly = s.phone.replace(/\D/g, '');
                   
                   const isEmailValid = emailRegex.test(s.email);
-                  const isPhoneValid = digitsOnly.length >= 10 && digitsOnly.length <= 15;
+                  const isPhoneValid = digitsOnly.length >= 7 && digitsOnly.length <= 15; // Support intl bounds
                   
                   if (!isEmailValid || !isPhoneValid) {
                     s.update({
@@ -145,13 +176,18 @@ export const ContractDetailPane = {
                   }
 
                   // Format phone before saving
-                  if (digitsOnly.startsWith('1')) digitsOnly = digitsOnly.slice(1);
-                  digitsOnly = digitsOnly.slice(0, 10);
-                  let formattedPhone = '+1';
-                  if (digitsOnly.length > 0) {
-                    formattedPhone += ` (${digitsOnly.slice(0, 3)})`;
-                    if (digitsOnly.length > 3) formattedPhone += ` ${digitsOnly.slice(3, 6)}`;
-                    if (digitsOnly.length > 6) formattedPhone += `-${digitsOnly.slice(6, 10)}`;
+                  const selectedCountry = COUNTRY_CODES.find(c => c.id === s.countryId) || COUNTRY_CODES[0];
+                  let formattedPhone = selectedCountry.code;
+                  
+                  if (digitsOnly.length === 10) {
+                    formattedPhone += ` (${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6, 10)}`;
+                  } else if (digitsOnly.length === 11) {
+                    formattedPhone += ` (${digitsOnly.slice(0, 4)}) ${digitsOnly.slice(4, 7)} ${digitsOnly.slice(7, 11)}`;
+                  } else {
+                    let chunks = [];
+                    // Fallback for odd lengths: group by 3s or 4s
+                    const match = digitsOnly.match(/.{1,4}/g);
+                    if (match) formattedPhone += ` ${match.join(' ')}`;
                   }
 
                   // Validated, clear errors and save
@@ -160,7 +196,7 @@ export const ContractDetailPane = {
                   if (targetClientId) {
                     const clients = rootState.clients.map(c => {
                       if (c.id === targetClientId) {
-                        return { ...c, contactEmail: s.email, contactPhone: formattedPhone }
+                        return { ...c, contactEmail: s.email, contactPhone: formattedPhone, contactCountryId: s.countryId }
                       }
                       return c
                     })
@@ -170,10 +206,29 @@ export const ContractDetailPane = {
                 } else {
                   // Enter edit mode
                   const client = rootState.clients?.find(c => c.id === targetClientId)
+                  let initPhone = client?.contactPhone || '';
+                  let initCountryId = client?.contactCountryId || 'us'; // Fallback to saved ID, if available
+                  
+                  // If we don't have a saved ID, guess from string
+                  if (!client?.contactCountryId && initPhone) {
+                    const matched = COUNTRY_CODES.find(c => initPhone.startsWith(c.code));
+                    if (matched) {
+                      initCountryId = matched.id;
+                      initPhone = initPhone.slice(matched.code.length).trim();
+                    }
+                  } else if (client?.contactCountryId) {
+                    // We DO have a saved ID, strip its code from the phone for pure editing
+                    const matched = COUNTRY_CODES.find(c => c.id === initCountryId);
+                    if (matched && initPhone.startsWith(matched.code)) {
+                      initPhone = initPhone.slice(matched.code.length).trim();
+                    }
+                  }
+
                   s.update({ 
                     isEditing: true, 
                     email: client?.contactEmail || '',
-                    phone: client?.contactPhone || '',
+                    phone: initPhone,
+                    countryId: initCountryId,
                     emailError: false,
                     phoneError: false
                   })
@@ -205,7 +260,11 @@ export const ContractDetailPane = {
                 const rootState = el.getRootState()
                 const project = rootState.projects?.find(p => p.id === rootState.selectedProjectId)
                 const client = rootState.clients?.find(c => c.id === project?.clientId)
-                return client?.contactPhone || 'No Phone'
+                const phone = client?.contactPhone || 'No Phone'
+                if (!client?.contactCountryId) return phone;
+                
+                const matched = COUNTRY_CODES.find(c => c.id === client.contactCountryId)
+                return matched ? `${matched.flag} ${phone}` : phone;
               }
             }
           },
@@ -232,38 +291,76 @@ export const ContractDetailPane = {
                 s.update({ email: sanitizedEmail, emailError: false });
               }
             },
-            PhoneInput: {
-              tag: 'input',
-              type: 'tel',
-              placeholder: 'Phone',
-              padding: 'Z',
+            PhoneInputGroup: {
+              extends: 'Flex',
+              alignItems: 'center',
               background: 'bgPrimary',
-              color: 'white',
               border: (el, s) => s.phoneError ? '1px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: 'W',
-              fontSize: 'Z',
-              value: (el, s) => s.phone,
-              onInput: (e, el, s) => {
-                // Only update raw value on input to prevent cursor jumping and character interleaving
-                s.update({ phone: e.target.value, phoneError: false });
+              overflow: 'hidden',
+              
+              CountrySelect: {
+                tag: 'select',
+                padding: 'Z Y Z Z',
+                background: 'transparent',
+                color: 'white',
+                border: 'none',
+                borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+                outline: 'none',
+                cursor: 'pointer',
+                fontSize: 'Z',
+                value: (el, s) => s.countryId,
+                onChange: (e, el, s) => {
+                  s.update({ countryId: e.target.value })
+                },
+                childExtends: {
+                  tag: 'option',
+                  attr: { 
+                    value: (el, s) => s.id,
+                    selected: (el, s) => el.parent.state.countryId === s.id
+                  },
+                  text: (el, s) => `${s.flag} ${s.code}`,
+                  style: { color: 'black' }
+                },
+                childrenAs: 'state',
+                children: COUNTRY_CODES
               },
-              onBlur: (e, el, s) => {
-                const raw = e.target.value;
-                if (!raw) return;
-                
-                let digits = raw.replace(/\D/g, '');
-                if (digits.startsWith('1')) digits = digits.slice(1);
-                digits = digits.slice(0, 10);
-                
-                let formatted = '';
-                if (digits.length > 0) {
-                  formatted = '+1';
-                  formatted += ` (${digits.slice(0, 3)})`;
-                  if (digits.length > 3) formatted += ` ${digits.slice(3, 6)}`;
-                  if (digits.length > 6) formatted += `-${digits.slice(6, 10)}`;
+              
+              PhoneInput: {
+                tag: 'input',
+                flex: 1,
+                type: 'tel',
+                placeholder: 'Phone',
+                padding: 'Z',
+                background: 'transparent',
+                color: 'white',
+                border: 'none',
+                outline: 'none',
+                fontSize: 'Z',
+                value: (el, s) => s.phone,
+                onInput: (e, el, s) => {
+                  s.update({ phone: e.target.value, phoneError: false });
+                },
+                onBlur: (e, el, s) => {
+                  const raw = e.target.value;
+                  if (!raw) return;
+                  
+                  let digits = raw.replace(/\D/g, '');
+                  
+                  let formatted = '';
+                  const selectedCountry = COUNTRY_CODES.find(c => c.id === s.countryId) || COUNTRY_CODES[0];
+                  
+                  if (digits.length === 10) {
+                    formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+                  } else if (digits.length === 11) {
+                    formatted = `(${digits.slice(0, 4)}) ${digits.slice(4, 7)} ${digits.slice(7, 11)}`;
+                  } else {
+                    const match = digits.match(/.{1,4}/g);
+                    if (match) formatted = match.join(' ');
+                  }
+                  
+                  s.update({ phone: formatted });
                 }
-                
-                s.update({ phone: formatted });
               }
             }
           }

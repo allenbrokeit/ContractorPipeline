@@ -363,3 +363,15 @@ display: 'flex', // CLI warns on deployment build/bundling.
 **Context:** Fixing navigation bug where a selected project details view remained open across different project pipeline phases (e.g., Lead -> Pitched) instead of resetting. Enhancing the empty state UX.
 **Solution:** Added an explicit `onClick` override to the `NavLink` component that clears `s.root.selectedProjectId` from the global state, alongside explicitly calling `e.preventDefault()` and `el.router()` to maintain the single-page application router transition cleanly without triggering native page reloads. Upgraded the `Placeholder` component within `ContractDetailPane` to include a structured, professional layout (Visual Icon, Title, Subtitle) to improve user affordance.
 **Key Learnings:** When extending a DOMQL `Link` and defining a custom `onClick` method to run side-effects (like clearing state), it is critical to invoke `e.preventDefault()` and manually call the internal `el.router(el.href, el.getRoot())` method. Otherwise, DOMQL will drop the SPA transition and cause a full browser reload.
+
+### Global Array Reactivity & Reference Replacement
+**Bug:** Updating an array in a global root state (`rootState.update({ clients })`) does not automatically trigger deep re-rendering of computed property functions (`text: (el, s) => ...`) if they don't explicitly subscribe to it, unless the component itself is re-mounted. 
+**Solution:** Relying on the natural remount of switching modes (e.g. `isEditing: false`) naturally forces the `DisplayMode` component to execute its computed functions again, picking up the new global state correctly. When modifying arrays, always map and return entirely new object references for modified items.
+
+### DOMQL `<option>` value bindings
+**Bug:** Binding `value: (el, s) => s.id` directly on a child component extending `<option>` fails to set the native HTML attribute. When a user selects it, the `<select>` emits the text of the option instead, causing data lookup failures.
+**Solution:** Always use `attr: { value: (el, s) => s.id }` for native HTML elements like `<option>` to ensure the DOM interprets it correctly. Additionally, it is best practice to bind `selected: (el, s) => el.parent.state.value === s.id` within the same `attr` block.
+
+### Phone Formatting with Dynamic Country Codes
+**Bug:** Tying subscriber digit masking logic (e.g., `(XXX) YYY-ZZZZ`) strictly to a single country code check (`if (country.code === '+1')`) breaks user expectations when they enter 10-digit numbers for other international regions, resulting in raw block chunking (`4151 2345 67`).
+**Solution:** Completely uncouple subscriber digit formatting from the country dialing code length. Extract the country prefix first (`formatted = country.code`), then evaluate the length of the remaining subscriber digits (`digitsOnly.length`). Apply the `(XXX) YYY-ZZZZ` format globally to any 10-digit number regardless of region, ensuring a predictable and localized experience.

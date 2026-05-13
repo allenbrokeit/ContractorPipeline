@@ -8,6 +8,12 @@ export const NavLink = {
     color: 'white'
   },
   
+  onClick: (e, el, s) => {
+    e.preventDefault()
+    el.getRootState().update({ selectedProjectId: null })
+    if (el.router) el.router(el.href, el.getRoot())
+  },
+  
   onUpdate: (el, s) => {
     const { pathname } = window.location
     const href = el.href

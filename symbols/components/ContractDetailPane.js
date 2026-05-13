@@ -8,12 +8,43 @@ export const ContractDetailPane = {
   Placeholder: {
     extends: 'Flex',
     flex: 1,
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 'C',
     if: (el, s) => !s.root.selectedProjectId,
-    text: 'Select a project to view details',
-    color: 'textSecondary',
-    fontSize: 'C'
+    
+    EmptyVisual: {
+      extends: 'Flex',
+      width: '64px',
+      height: '64px',
+      borderRadius: '50%',
+      background: 'rgba(255, 255, 255, 0.05)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      text: '📄',
+      fontSize: 'D',
+      marginBottom: 'A'
+    },
+    Title: {
+      tag: 'h2',
+      text: 'No Project Selected',
+      color: 'white',
+      margin: 0,
+      fontSize: 'D',
+      fontWeight: '600'
+    },
+    Description: {
+      tag: 'p',
+      text: 'Select a project from the pipeline on the left to view and edit its detailed information, status, and contact records.',
+      color: 'textSecondary',
+      fontSize: 'Z',
+      margin: 0,
+      maxWidth: '400px',
+      textAlign: 'center',
+      lineHeight: '1.6'
+    }
   },
   
   EditorContainer: {
@@ -63,7 +94,9 @@ export const ContractDetailPane = {
           state: {
             isEditing: false,
             email: '',
-            phone: ''
+            phone: '',
+            emailError: false,
+            phoneError: false
           },
 
           Header: {
@@ -96,11 +129,38 @@ export const ContractDetailPane = {
                 const targetClientId = selectedProject?.clientId
 
                 if (s.isEditing) {
-                  // Save action
+                  // Pre-save validation
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                  let digitsOnly = s.phone.replace(/\D/g, '');
+                  
+                  const isEmailValid = emailRegex.test(s.email);
+                  const isPhoneValid = digitsOnly.length >= 10 && digitsOnly.length <= 15;
+                  
+                  if (!isEmailValid || !isPhoneValid) {
+                    s.update({
+                      emailError: !isEmailValid,
+                      phoneError: !isPhoneValid
+                    });
+                    return; // Abort save
+                  }
+
+                  // Format phone before saving
+                  if (digitsOnly.startsWith('1')) digitsOnly = digitsOnly.slice(1);
+                  digitsOnly = digitsOnly.slice(0, 10);
+                  let formattedPhone = '+1';
+                  if (digitsOnly.length > 0) {
+                    formattedPhone += ` (${digitsOnly.slice(0, 3)})`;
+                    if (digitsOnly.length > 3) formattedPhone += ` ${digitsOnly.slice(3, 6)}`;
+                    if (digitsOnly.length > 6) formattedPhone += `-${digitsOnly.slice(6, 10)}`;
+                  }
+
+                  // Validated, clear errors and save
+                  s.update({ emailError: false, phoneError: false, phone: formattedPhone });
+
                   if (targetClientId) {
                     const clients = rootState.clients.map(c => {
                       if (c.id === targetClientId) {
-                        return { ...c, contactEmail: s.email, contactPhone: s.phone }
+                        return { ...c, contactEmail: s.email, contactPhone: formattedPhone }
                       }
                       return c
                     })
@@ -113,7 +173,9 @@ export const ContractDetailPane = {
                   s.update({ 
                     isEditing: true, 
                     email: client?.contactEmail || '',
-                    phone: client?.contactPhone || ''
+                    phone: client?.contactPhone || '',
+                    emailError: false,
+                    phoneError: false
                   })
                 }
               }
@@ -161,11 +223,14 @@ export const ContractDetailPane = {
               padding: 'Z',
               background: 'bgPrimary',
               color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: (el, s) => s.emailError ? '1px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: 'W',
               fontSize: 'Z',
               value: (el, s) => s.email,
-              onInput: (e, el, s) => s.update({ email: e.target.value })
+              onInput: (e, el, s) => {
+                const sanitizedEmail = e.target.value.toLowerCase().replace(/\s/g, '');
+                s.update({ email: sanitizedEmail, emailError: false });
+              }
             },
             PhoneInput: {
               tag: 'input',
@@ -174,11 +239,32 @@ export const ContractDetailPane = {
               padding: 'Z',
               background: 'bgPrimary',
               color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: (el, s) => s.phoneError ? '1px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: 'W',
               fontSize: 'Z',
               value: (el, s) => s.phone,
-              onInput: (e, el, s) => s.update({ phone: e.target.value })
+              onInput: (e, el, s) => {
+                // Only update raw value on input to prevent cursor jumping and character interleaving
+                s.update({ phone: e.target.value, phoneError: false });
+              },
+              onBlur: (e, el, s) => {
+                const raw = e.target.value;
+                if (!raw) return;
+                
+                let digits = raw.replace(/\D/g, '');
+                if (digits.startsWith('1')) digits = digits.slice(1);
+                digits = digits.slice(0, 10);
+                
+                let formatted = '';
+                if (digits.length > 0) {
+                  formatted = '+1';
+                  formatted += ` (${digits.slice(0, 3)})`;
+                  if (digits.length > 3) formatted += ` ${digits.slice(3, 6)}`;
+                  if (digits.length > 6) formatted += `-${digits.slice(6, 10)}`;
+                }
+                
+                s.update({ phone: formatted });
+              }
             }
           }
         }

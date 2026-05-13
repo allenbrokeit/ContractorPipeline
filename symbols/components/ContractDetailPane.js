@@ -8,12 +8,43 @@ export const ContractDetailPane = {
   Placeholder: {
     extends: 'Flex',
     flex: 1,
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 'C',
     if: (el, s) => !s.root.selectedProjectId,
-    text: 'Select a project to view details',
-    color: 'textSecondary',
-    fontSize: 'C'
+    
+    EmptyVisual: {
+      extends: 'Flex',
+      width: '64px',
+      height: '64px',
+      borderRadius: '50%',
+      background: 'rgba(255, 255, 255, 0.05)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      text: '📄',
+      fontSize: 'D',
+      marginBottom: 'A'
+    },
+    Title: {
+      tag: 'h2',
+      text: 'No Project Selected',
+      color: 'white',
+      margin: 0,
+      fontSize: 'D',
+      fontWeight: '600'
+    },
+    Description: {
+      tag: 'p',
+      text: 'Select a project from the pipeline on the left to view and edit its detailed information, status, and contact records.',
+      color: 'textSecondary',
+      fontSize: 'Z',
+      margin: 0,
+      maxWidth: '400px',
+      textAlign: 'center',
+      lineHeight: '1.6'
+    }
   },
   
   EditorContainer: {

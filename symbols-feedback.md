@@ -345,3 +345,15 @@ display: 'flex', // CLI warns on deployment build/bundling.
 **Context:** Adding inline editing functionality to the Contact Information in the Project Details page.
 **Solution:** Refactored the `ContactInfo` block in `ContractDetailPane.js` to manage a local state (`isEditing: false`, `email`, `phone`). Added an Edit/Save toggle button. Created conditional `DisplayMode` and `EditMode` components that swap between static text and interactive inputs. 
 **Key Learnings:** DOMQL's reactive architecture seamlessly handles inline editing. Grabbing the latest values (`s.email`, `s.phone`) from the local state and applying them globally (`s.root.update({ clients: updatedClients })`) instantly syncs the UI back to display mode without manual DOM manipulation. Fetching relational data dynamically within the `onClick` handler via `el.getRootState()` guarantees we update the correct `clientId`.
+
+### Contact Info Validation & Formatting
+**Date:** 2026-05-13
+**Context:** Adding real-time input sanitization, formatting, and pre-save validation to the editable contact fields.
+**Solution:** Added `emailError` and `phoneError` flags to the `ContactInfo` local state. Bound an `onInput` handler to `EmailInput` to strip whitespace and enforce lowercase. Bound an `onInput` handler to `PhoneInput` that strips non-digits and dynamically rebuilds the string in international chunked format (`+C AAA SSS SSSS`). Within the "Save" `onClick` handler, validated the state using strict regex patterns before allowing a global state merge. Invalid inputs abort the save and turn the input borders red.
+**Key Learnings:** Relying on DOMQL's `onInput` combined with `s.update()` provides instant "as-you-type" formatting without any external libraries. Pre-save validation safely gates global state mutations.
+
+### Contact Info Formatting Bug Fix
+**Date:** 2026-05-13
+**Context:** Fixing phone number formatting logic that was scrambling raw digit inputs (producing incorrect artifacts like `+116753...`) during rapid typing.
+**Solution:** Removed real-time input formatting from the `onInput` handler (which was causing uncontrollable cursor jumping and digit interleaving). Updated the logic to only save raw user strokes into the local state. Handled the heavy formatting (appending `+1`, `( )`, and `-`) dynamically within the `onBlur` event of the input, and within the `Save` button`s `onClick` execution using standard DOMQL syntax.
+**Key Learnings:** Never format the string values inside DOMQL `onInput` events directly unless using an explicit input masking tool, as `s.update()` completely swaps the DOM node value, forcing the browser`s cursor to jump to the end of the text line leading to chaotic interleaving during continuous typing.

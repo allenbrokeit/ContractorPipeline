@@ -254,17 +254,37 @@ export const ContractDetailPane = {
               }
             },
             Phone: {
+              extends: 'Flex',
+              alignItems: 'center',
+              gap: 'Y',
               color: 'textSecondary',
               fontSize: 'Z',
-              text: (el, s) => {
-                const rootState = el.getRootState()
-                const project = rootState.projects?.find(p => p.id === rootState.selectedProjectId)
-                const client = rootState.clients?.find(c => c.id === project?.clientId)
-                const phone = client?.contactPhone || 'No Phone'
-                if (!client?.contactCountryId) return phone;
-                
-                const matched = COUNTRY_CODES.find(c => c.id === client.contactCountryId)
-                return matched ? `${matched.flag} ${phone}` : phone;
+              FlagIcon: {
+                text: (el, s) => {
+                  const rootState = el.getRootState()
+                  const project = rootState.projects?.find(p => p.id === rootState.selectedProjectId)
+                  const client = rootState.clients?.find(c => c.id === project?.clientId)
+                  const countryId = client?.contactCountryId || 'us'
+                  const matched = COUNTRY_CODES.find(c => c.id === countryId)
+                  return matched ? matched.flag : ''
+                },
+                attr: {
+                  title: (el, s) => {
+                    const rootState = el.getRootState()
+                    const project = rootState.projects?.find(p => p.id === rootState.selectedProjectId)
+                    const client = rootState.clients?.find(c => c.id === project?.clientId)
+                    const countryId = client?.contactCountryId || 'us'
+                    return countryId.toUpperCase()
+                  }
+                }
+              },
+              NumberText: {
+                text: (el, s) => {
+                  const rootState = el.getRootState()
+                  const project = rootState.projects?.find(p => p.id === rootState.selectedProjectId)
+                  const client = rootState.clients?.find(c => c.id === project?.clientId)
+                  return client?.contactPhone || 'No Phone'
+                }
               }
             }
           },
@@ -310,14 +330,25 @@ export const ContractDetailPane = {
                 cursor: 'pointer',
                 fontSize: 'Z',
                 value: (el, s) => s.countryId,
+                attr: {
+                  title: (el, s) => s.countryId ? s.countryId.toUpperCase() : ''
+                },
                 onChange: (e, el, s) => {
                   s.update({ countryId: e.target.value })
+                },
+                onRender: (el, s) => {
+                  setTimeout(() => {
+                    if (el.node) el.node.value = s.countryId;
+                  }, 10);
+                },
+                onUpdate: (el, s) => {
+                  if (el.node) el.node.value = s.countryId;
                 },
                 childExtends: {
                   tag: 'option',
                   attr: { 
                     value: (el, s) => s.id,
-                    selected: (el, s) => el.parent.state.countryId === s.id
+                    title: (el, s) => s.id.toUpperCase()
                   },
                   text: (el, s) => `${s.flag} ${s.code}`,
                   style: { color: 'black' }

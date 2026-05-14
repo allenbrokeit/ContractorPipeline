@@ -111,7 +111,7 @@ export const FinancialHealthGauge = {
       },
       Input: {
         tag: 'input',
-        type: 'number',
+        type: 'tel',
         background: 'transparent',
         border: 'none',
         borderBottom: '1px dotted rgba(255, 255, 255, 0.4)',
@@ -120,13 +120,19 @@ export const FinancialHealthGauge = {
         fontSize: 'inherit',
         fontFamily: 'inherit',
         outline: 'none',
-        width: '70px',
-        padding: '0',
-        value: (el, s) => s.root.targetMonthlyThreshold,
+        width: '85px',
+        padding: '0 0 0 Z',
+        value: (el, s) => {
+          const val = s.root.targetMonthlyThreshold || 0;
+          return new Intl.NumberFormat('en-US').format(val);
+        },
         onInput: (e, el, s) => {
-          const val = parseInt(e.target.value, 10);
+          const rawString = e.target.value.replace(/\D/g, '');
+          const val = parseInt(rawString, 10);
           if (!isNaN(val) && val >= 0) {
             s.root.update({ targetMonthlyThreshold: val });
+          } else if (rawString === '') {
+            s.root.update({ targetMonthlyThreshold: 0 });
           }
         },
         ':focus': {

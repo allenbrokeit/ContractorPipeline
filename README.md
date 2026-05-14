@@ -57,9 +57,15 @@ npm run build
 To execute the automated test suite and verify the integrity of the DOMQL components and reactivity logic:
 
 ```bash
-[INSERT AUTOMATED TEST COMMAND HERE]
+npm test
 ```
-*(Note: As a highly visual DOMQL project, integration testing is often performed via browser automation suites like Playwright. Ensure your local browser automation environment is correctly configured before running headless visual tests).*
+
+The test suite uses **Jest** with **jsdom** to headlessly verify:
+- Hamburger menu state toggling and icon bar animations
+- Responsive media query declarations (mobile vs. desktop visibility)
+- Mobile menu expand/collapse reactivity
+- Active route lightbar slide-in logic
+- Navigation link completeness across desktop and mobile menus
 
 ## License
 This project is licensed under the [MIT License](./LICENSE).

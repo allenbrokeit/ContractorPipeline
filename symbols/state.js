@@ -7,6 +7,7 @@ export default {
 
   // UI State toggles
   isContractModalOpen: false,
+  isMenuOpen: false,
   selectedProjectId: null,
   contractSortBy: 'recent',
 

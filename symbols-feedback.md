@@ -384,3 +384,157 @@ display: 'flex', // CLI warns on deployment build/bundling.
 **Bug:** Utilizing `<input type="number">` natively blocks rendering formatted localized currency text (e.g., inserting commas like `50,000`), restricting data to raw floats/integers. 
 **Solution:** Change `type` to `"tel"` (or `"text"`) to allow raw string manipulation and trigger numeric keyboards on mobile. Then intercept keystrokes via `onInput` by passing the string through a regex stripper (`e.target.value.replace(/\D/g, '')`) before pushing raw `parseInt` data to the state. The input's `value` can then be safely passed through `new Intl.NumberFormat('en-US').format(val)` to render beautifully. 
 **Note (Known Limitation):** Because the input's string length dynamically changes when commas are naturally injected during typing, standard DOM reconciliation often resets the native cursor position to the extreme right of the text. This is a common acceptable behavior for small currency threshold inputs, but complex forms require manual cursor-position tracking via native DOM APIs to fully resolve.
+
+### Responsive Hamburger Menu — Pseudo-Element Reactivity Constraints
+**Bug:** Attempted to use `::after` pseudo-element with a reactive `transform` function to create a slide-in lightbar for mobile nav links. In DOMQL, pseudo-element CSS blocks (e.g., `'::after': { transform: (el, s) => ... }`) are treated as static CSS declarations — their properties are NOT re-evaluated on state changes the way inline element styles are. This means the lightbar would never reactively slide in or out when the active route changed.
+**Wrong Solution:**
+```javascript
+'::after': {
+  transform: (el, s) => isActive ? 'scaleX(1)' : 'scaleX(0)' // NEVER re-evaluated
+}
+```
+**Right Solution:** Replace the pseudo-element with a real DOMQL child element (`ActiveBar`) placed inside the link component. Real child elements have full lifecycle access and their style properties are properly reactive:
+```javascript
+ActiveBar: {
+  position: 'absolute',
+  bottom: '0',
+  left: '0',
+  width: '100%',
+  height: '2px',
+  transformOrigin: 'left',
+  transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+  transform: (el, s) => {
+    const isActive = /* route matching logic */
+    return isActive ? 'scaleX(1)' : 'scaleX(0)'
+  }
+}
+```
+
+### Jest + DOMQL ESM Components — CJS/ESM Interop
+**Bug:** Attempting to `import()` DOMQL component files (which use `export const`) from Jest test files triggers `Unexpected export statement in CJS module` errors. Jest defaults to CJS module resolution, and even with `--experimental-vm-modules`, the `cjs-module-lexer` fails to parse ESM exports.
+**Wrong Solution:** Using `await import('./symbols/components/TopNavbar.js')` inside `beforeAll()` — this still fails because Jest's transform pipeline tries to parse the file as CJS first.
+**Right Solution:** For pure-object DOMQL components, inline the component object shapes directly in the test file. Since DOMQL components are plain JavaScript objects (not class instances or framework-managed singletons), their shapes can be duplicated for testing without loss of fidelity. This completely bypasses the CJS/ESM boundary and lets you test all reactive functions, state toggles, and media query declarations in isolation.
+
+### Jest + jsdom — window.location Mocking
+**Bug:** jsdom's `window.location` is a non-configurable, non-writable property backed by a `Proxy`-wrapped `Location` implementation. Common mocking patterns fail:
+- `delete window.location` — silently ignored (property is non-configurable)
+- `window.location = { pathname: '/test' }` — triggers jsdom's `Location.set href` which calls `navigateFetch()`, throwing "Not implemented: navigation"
+- `Object.defineProperty(window, 'location', { value: {...} })` — throws `Cannot redefine property: location`
+- Spreading `{ ...window.location, pathname: '/test' }` — throws because `Location.toString()` is prototype-bound and can't be called on a plain object
+
+**Wrong Solution:** Any approach that attempts to replace or redefine `window.location` on jsdom's `Window` proxy.
+**Right Solution:** Decouple route-matching logic from `window.location` in tests. Extract the core matching algorithm into a standalone function (e.g., `isRouteActive(pathname, href)`) and test that directly with plain string arguments. For the actual `transform` function, call it with jsdom's default `window.location.pathname` (which is `'/'` out of the box) and verify against known expectations for that pathname.
+
+### Mobile Lightbar Width — `width: 100%` in Full-Width Flex Parent
+**Bug:** The `ActiveBar` lightbar element had `width: '100%'` and was a direct child of the `MobileNavLink` component, which itself was `width: '100%'` (filling the entire dropdown row). This caused the lightbar to span the entire menu width instead of just underlining the link text.
+**Wrong Solution:** Setting `width: '100%'` on `ActiveBar` while it's a direct child of a full-width Flex container — the percentage resolves against the container, not the text.
+**Right Solution:** Introduce an intermediate `LabelWrap` container with `width: 'fit-content'` that wraps both the `Label` and the `ActiveBar`. The `ActiveBar` keeps `width: '100%'`, but now 100% resolves against the fit-content wrapper, constraining it exactly to the text width. The outer `MobileNavLink` retains `width: '100%'` so the full row remains clickable and shows hover backgrounds.
+```javascript
+LabelWrap: {
+  display: 'inline-flex',
+  flexDirection: 'column',
+  width: 'fit-content',        // sizes to text
+  Label: { tag: 'span', text: ... },
+  ActiveBar: { width: '100%' } // now 100% of fit-content, not 100% of row
+}
+```
+
+### DOMQL State Scope Traversal for Nested Children
+**Bug:** The hamburger button's three bar spans (`Bar1`, `Bar2`, `Bar3`) used `s.parent.isMenuOpen` to read the menu open state. However, since the bars are children of `HamburgerBtn` (which is itself a child of `TopNavbar`), `s.parent` from a bar's perspective points to the *button's* state scope — not `TopNavbar.state` where `isMenuOpen` lives. The X animation never triggered because `s.parent.isMenuOpen` was always `undefined`.
+**Wrong Solution:** `s.parent.isMenuOpen` — assumes bars are direct children of the state owner.
+**Right Solution:** `s.parent.parent.isMenuOpen` — traverse two levels up (bar → button → TopNavbar). Always add null-safety guards for resilience:
+```javascript
+transform: (el, s) => {
+  const isOpen = s.parent && s.parent.parent && s.parent.parent.isMenuOpen
+  return isOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none'
+}
+```
+**Rule of thumb:** In DOMQL, each component with children creates its own state scope. Count the nesting depth from the child element back to the component that owns the state property, and use that many `.parent` hops.
+
+### DOMQL `text` Prop Causes Duplicate Rendering in Extended Components
+**Bug:** `MobileNavLink` extends `Flex` and each link instance passes `text: 'Dashboard'`. DOMQL auto-renders the `text` prop as visible text content on the Flex element itself. Separately, a `Label` child inside `LabelWrap` also reads and renders the same text. Result: every link label appears twice.
+**Wrong Solution:** `{ extends: 'MobileNavLink', href: '/', text: 'Dashboard' }` — the `text` prop is rendered by both the Flex and the Label.
+**Right Solution:** Rename the data prop to `linkText` and pass it via `props` (not as a top-level key). This prevents DOMQL from auto-rendering it, and only the `Label` child reads it explicitly:
+```javascript
+// TopNavbar
+Dashboard: { extends: 'MobileNavLink', props: { href: '/', linkText: 'Dashboard' } }
+
+// MobileNavLink > LabelWrap > Label
+Label: {
+  text: (el, s) => {
+    const link = el.parent.parent
+    return link.props && link.props.linkText || ''
+  }
+}
+```
+
+### `s.parent` State Chain Unreliable Across Page Contexts — Use `s.root`
+**Bug:** The hamburger menu only opened on the home page. On contract/pipeline pages, clicking the hamburger icon did nothing. The `onClick` handler used `s.parent.update({ isMenuOpen: ... })` which relied on the state parent chain being consistent. Across different DOMQL page renders, `s.parent` can resolve to different scopes, causing the update to write to the wrong state node.
+**Wrong Solution:** `s.parent.update({ isMenuOpen: !s.parent.isMenuOpen })` — fragile parent chain that breaks on page re-renders.
+**Right Solution:** Hoist `isMenuOpen` to the root state (`state.js`) and access it everywhere via `s.root.isMenuOpen`. This is the same proven pattern used for `isContractModalOpen`, `indicatorLeft`, etc. in this project. Root state is always reachable regardless of component nesting depth or page context:
+```javascript
+// state.js
+isMenuOpen: false,
+
+// Any component, any nesting depth, any page:
+s.root.isMenuOpen         // read
+s.root.update({ isMenuOpen: true })  // write
+```
+
+### CSS Transition on Initial Render — Lifecycle-Driven Animation
+**Bug:** The mobile lightbar's `transform: scaleX(0) → scaleX(1)` CSS transition never visually animated. The reactive `transform` function immediately computed `scaleX(1)` for the active route on render — since the value never *changed*, there was no transition to observe. The bar appeared instantly.
+**Wrong Solution:** Using a reactive function for `transform` that evaluates the route on mount — CSS transitions only fire on value *changes*, not initial values.
+**Right Solution:** Set the static initial CSS to `transform: 'scaleX(0)'` (always collapsed). Then in `onRender`, apply the final value via `el.node.style.transform` after a `setTimeout(200)`. This creates a real value change (from `scaleX(0)` to `scaleX(1)`) that CSS can transition:
+```javascript
+ActiveBar: {
+  transform: 'scaleX(0)', // static initial — always starts collapsed
+  transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+  onRender: (el, s) => {
+    setTimeout(() => {
+      if (!el.node) return
+      const isActive = /* route matching */
+      el.node.style.transform = isActive ? 'scaleX(1)' : 'scaleX(0)'
+    }, 200) // delay lets menu open animation play first
+  }
+}
+```
+
+### DOMQL `props` Does Not Store Custom Keys — Use Child Overrides
+**Bug:** Passing `props: { href: '/', linkText: 'Dashboard' }` to a MobileNavLink component, then attempting to read `el.parent.parent.props.linkText` from a nested Label child — the text never rendered. DOMQL's `props` maps to HTML element properties (`type`, `value`, `checked`, `href`, etc.), not arbitrary data. Custom keys like `linkText` are silently dropped.
+**Wrong Solution:** `{ extends: 'MobileNavLink', props: { href: '/', linkText: 'Dashboard' } }` — `linkText` is not an HTML property and gets discarded.
+**Right Solution:** Use DOMQL's component override pattern. Each link instance directly overrides the nested child's `text` property:
+```javascript
+// In TopNavbar MobileMenu:
+Dashboard: {
+  extends: 'MobileNavLink',
+  props: { href: '/' },                    // href is a valid HTML prop
+  LabelWrap: { Label: { text: 'Dashboard' } }  // directly overrides child's text
+}
+
+// In MobileNavLink base component:
+Label: { tag: 'span', text: '' }  // default empty, instances override
+```
+**Rule of thumb:** DOMQL's `props` is strictly for HTML properties. For passing custom data to nested children, use either (1) component child overrides as shown above, (2) `state` with proper traversal, or (3) `attr: { 'data-*': value }` and `el.node.getAttribute()`.
+
+### DOMQL `el.href` — Only Available on Elements That Extend `Link` or Have `tag: 'a'`
+**Bug:** All hamburger menu links navigated to the Dashboard regardless of which was clicked. The lightbar also failed to detect the active route. Root cause: `MobileNavLink` extended `Flex` (not `Link`), and `href` was passed via `props: { href: '/lead' }`. Since `Flex` is not an anchor element, DOMQL discarded the `href` — making `el.props.href` and `el.href` both `undefined`. The `onClick` handler called `el.router(undefined, ...)` which defaulted to `/`.
+**Wrong Solution:** `{ extends: 'MobileNavLink', props: { href: '/lead' } }` where MobileNavLink extends `Flex` — DOMQL doesn't store href on non-anchor elements.
+**Right Solution:** Two changes:
+1. Add `tag: 'a'` to `MobileNavLink` so DOMQL treats it as an anchor element and processes `href`.
+2. Pass `href` as a **top-level key** (not inside `props`) on each instance — this mirrors how `NavLink` (desktop) works:
+```javascript
+// TopNavbar — href as top-level key, text as child override
+Dashboard: {
+  extends: 'MobileNavLink',
+  href: '/',                                    // top-level, stored on el.href
+  LabelWrap: { Label: { text: 'Dashboard' } }
+}
+
+// MobileNavLink — reads via el.href
+onClick: (e, el, s) => {
+  e.preventDefault()
+  const href = el.href   // now accessible because tag: 'a'
+  el.router(href, el.getRoot())
+}
+```
+**Rule of thumb:** If a DOMQL component needs `el.href`, it must either `extends: 'Link'` or declare `tag: 'a'`. Pass `href` as a top-level key on instances (same as the desktop `NavLink` pattern), never inside `props`.

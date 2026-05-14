@@ -103,7 +103,42 @@ export const FinancialHealthGauge = {
     },
     
     Target: {
-      text: (el, s) => `Target: $${s.root.targetMonthlyThreshold}`
+      extends: 'Flex',
+      alignItems: 'center',
+      gap: 'W',
+      Label: {
+        text: 'Target: $'
+      },
+      Input: {
+        tag: 'input',
+        type: 'tel',
+        background: 'transparent',
+        border: 'none',
+        borderBottom: '1px dotted rgba(255, 255, 255, 0.4)',
+        color: 'textPrimary',
+        fontWeight: 'bold',
+        fontSize: 'inherit',
+        fontFamily: 'inherit',
+        outline: 'none',
+        width: '85px',
+        padding: '0 0 0 Z',
+        value: (el, s) => {
+          const val = s.root.targetMonthlyThreshold || 0;
+          return new Intl.NumberFormat('en-US').format(val);
+        },
+        onInput: (e, el, s) => {
+          const rawString = e.target.value.replace(/\D/g, '');
+          const val = parseInt(rawString, 10);
+          if (!isNaN(val) && val >= 0) {
+            s.root.update({ targetMonthlyThreshold: val });
+          } else if (rawString === '') {
+            s.root.update({ targetMonthlyThreshold: 0 });
+          }
+        },
+        ':focus': {
+          borderBottom: '1px solid rgba(255, 255, 255, 1)'
+        }
+      }
     }
   }
 }

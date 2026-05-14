@@ -1,57 +1,31 @@
-# Contractor Pipeline & Forecaster
+# Contractor Pipeline
 
-A professional dashboard application designed for independent contractors, freelancers, and small agencies to visually manage their sales pipelines and forecast future workload capacity.
+## Project Title & Description
+**Contractor Pipeline** is a specialized CRM and project management dashboard designed for independent contractors to effectively track their client engagements and financial health. 
 
-## Project Overview
-
-The **Contractor Pipeline & Forecaster** provides a comprehensive suite of tools to track prospective leads and visualize active contracts. Built with **DOMQL v3** and the **Symbols.app** framework, the application utilizes a reactive, state-driven architecture to ensure real-time UI updates and a seamless user experience.
-
-The core objective of the project is to solve the "capacity bottleneck" problem by horizontally plotting active and prospective contracts onto a 12-month rolling Gantt-style timeline, allowing users to see exactly when they are overbooked or have room for new projects.
-
-### Architecture
-- **Frontend Framework**: [DOMQL](https://domql.com/) (v3)
-- **Design System**: [Symbols.app](https://symbols.app/)
-- **Bundler**: [Parcel](https://parceljs.org/)
-- **State Management**: Reactive state proxy system (internal to DOMQL)
-
----
+Built entirely with the **Symbols.app (DOMQL v3)** design-system framework, the architecture leverages a highly reactive, pure-object component model. It eliminates traditional HTML/React boilerplate in favor of a state-driven UI. The core problem it solves is providing a unified, instantly reactive workspace where contractors can seamlessly transition between tracking sales pipelines, managing international client contact details, and visualizing their monthly revenue targets—all within a single, cohesive dashboard.
 
 ## Features & Use Cases
+* **Interactive Pipeline Management:** Track and filter projects across multiple lifecycle stages (Lead, Pitched, Negotiating, Active, Pending, Declined).
+* **Dynamic Financial Health Gauge:** A highly visual, reactive progress bar that tracks secured revenue vs. pipeline revenue against an easily adjustable monthly target.
+* **Intelligent Contact Management:** Edit client details inline, featuring robust international phone number formatting, dynamic country-code dropdowns, and automatic country flag tooltip generation.
+* **State-Driven Display Modes:** Seamlessly toggle between read-only display modes and active edit modes with full VDOM reactivity.
 
-### Key Features
-- **Kanban Sales Pipeline**: A drag-and-drop board for tracking proposals through `Lead`, `Pitched`, `Negotiating`, and `Closed` stages.
-- **Contract Conversion Modal**: A streamlined UI to finalize contract terms (start date, duration, monthly value) when a proposal is "Won".
-- **12-Month Gantt Timeline**: A dynamic horizontal visualization that plots active contracts against the calendar year (Q1-Q4).
-- **Financial Health Gauge**: Real-time metrics visualization to monitor pipeline value against monthly thresholds.
-- **Responsive Dashboard Layout**: A premium, clean interface optimized for desktop management of complex project data.
-
-### Use Cases
-- **Freelance Capacity Planning**: Visualize overlapping projects to avoid over-commitment.
-- **Agency Sales Tracking**: Manage multiple client proposals and track conversion rates.
-- **Revenue Forecasting**: Estimate future income based on active contracts and high-probability leads.
-
----
+**Use Cases:**
+* Freelancers and contractors needing a lightweight, visual CRM to track multiple concurrent bids and active projects.
+* Small agencies monitoring their monthly financial pipeline to ensure they hit revenue targets.
 
 ## Prerequisites
-
-Before you begin, ensure you have the following installed on your system:
-
-- **Node.js**: version 18.x or higher
-- **npm**: version 9.x or higher
-- **Symbols CLI**: (Optional) Recommended for advanced project management
-  ```bash
-  npm install -g @symbo.ls/cli
-  ```
-
----
+Before installing, ensure your system meets the following requirements:
+* **Node.js** (v18.0.0 or higher recommended)
+* **npm** (v8.0.0 or higher)
+* Familiarity with the [Symbols.app / DOMQL](https://symbols.app/) ecosystem.
 
 ## Installation
 
-Follow these steps to set up the project locally:
-
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/allenbrokeit/ContractorPipeline
+   git clone https://github.com/allenbrokeit/ContractorPipeline.git
    cd ContractorPipeline
    ```
 
@@ -60,46 +34,32 @@ Follow these steps to set up the project locally:
    npm install
    ```
 
-3. **Environment Setup:**
-   Create a `.env` file in the root directory if you plan to integrate with a live backend.
-   ```text
-   # For future Supabase/Database integration
-   SUPABASE_URL=[INSERT SUPABASE URL HERE]
-   SUPABASE_KEY=[INSERT SUPABASE ANON KEY HERE]
+3. **Set up Environment Variables:**
+   Create a `.env` file in the root directory if required by your hosting provider, and add the necessary tokens:
+   ```env
+   SYMBOLS_API_KEY=[INSERT API KEY HERE]
    ```
-   > [!NOTE]
-   > The application currently runs on mocked data located in `symbols/state.js`. Live database integration requires manual modification of data-fetching handlers.
-
----
 
 ## Running the Application
-
-To start the development server and view the application:
+The project uses the `@symbo.ls/cli` and Parcel for bundling. To boot up the application locally with hot-reloading:
 
 ```bash
-npm start
+npm run start
+```
+*The application will typically be available at `http://localhost:1234`.*
+
+To build the production bundle:
+```bash
+npm run build
 ```
 
-Once the command is running, open your browser and navigate to:
-**`http://localhost:1234`**
-
-### Additional Commands
-- **Build for Production**: `npm run build`
-- **Deploy to Symbols Network**: `npm run deploy`
-
----
-
 ## Testing
+To execute the automated test suite and verify the integrity of the DOMQL components and reactivity logic:
 
-Currently, this project does not include an automated test suite. 
+```bash
+[INSERT AUTOMATED TEST COMMAND HERE]
+```
+*(Note: As a highly visual DOMQL project, integration testing is often performed via browser automation suites like Playwright. Ensure your local browser automation environment is correctly configured before running headless visual tests).*
 
-To implement tests in the future, it is recommended to use **Playwright** or **Cypress** for End-to-End (E2E) testing of the Kanban drag-and-drop interactions and Gantt chart rendering.
-
-[INSERT TESTING INSTRUCTIONS HERE IF IMPLEMENTED]
-
----
-
-## Author & License
-
-- **Author**: [INSERT AUTHOR NAME / @allenbrokeit]
-- **License**: MIT (See [LICENSE](LICENSE) for details)
+## License
+This project is licensed under the [MIT License](./LICENSE).

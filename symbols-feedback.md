@@ -538,3 +538,30 @@ onClick: (e, el, s) => {
 }
 ```
 **Rule of thumb:** If a DOMQL component needs `el.href`, it must either `extends: 'Link'` or declare `tag: 'a'`. Pass `href` as a top-level key on instances (same as the desktop `NavLink` pattern), never inside `props`.
+
+### CSS Media Query Visibility State Does Not Trigger DOMQL Lifecycles
+**Bug:** When resizing from mobile (<=900px) back to desktop, the desktop navigation lightbar did not appear under the currently active link. Root cause: The desktop `NavLinks` container transitioned from `display: none` to visible entirely via CSS media queries. DOMQL does not observe CSS paint visibility state, so no component lifecycle hooks (`onUpdate`, `onRender`) fired when the links became visible. Since `NavLink.onUpdate` measures physical DOM values (`el.node.offsetLeft`/`offsetWidth`), the initial render on mobile measured zeros (since it was `display: none`), and never re-measured when it became visible.
+**Wrong Solution:** Relying exclusively on CSS media queries for visibility when child components depend on physical DOM measurements like offset/width.
+**Right Solution:** Add a window resize listener on the parent component (`TopNavbar`) to explicitly detect the media query breakpoint crossover. When crossing from mobile to desktop, use `setTimeout` (to allow CSS to apply and elements to become measurable) and manually call `onUpdate` on the child links to force them to re-measure their DOM positions:
+```javascript
+onRender: (el, s) => {
+  let wasMobile = window.innerWidth <= 900
+  window.addEventListener('resize', () => {
+    const isMobile = window.innerWidth <= 900
+    if (wasMobile && !isMobile) {
+      // Crossed from mobile to desktop — NavLinks became visible
+      // Wait for CSS to apply and elements to become measurable
+      setTimeout(() => {
+        const navLinks = el.NavLinks
+        if (!navLinks) return
+        const linkKeys = ['Dashboard', 'Leads', 'Pitched', 'Negotiating', 'Active', 'Inactive']
+        linkKeys.forEach(key => {
+          const link = navLinks[key]
+          if (link && link.onUpdate) link.onUpdate(link, link.state) // Force re-measure
+        })
+      }, 200)
+    }
+    wasMobile = isMobile
+  })
+}
+```

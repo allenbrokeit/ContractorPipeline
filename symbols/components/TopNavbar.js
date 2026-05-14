@@ -9,6 +9,28 @@ export const TopNavbar = {
   borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
   position: 'relative',
   flexWrap: 'wrap',
+
+  // Detect mobile→desktop crossover and force indicator recalculation
+  onRender: (el, s) => {
+    let wasMobile = window.innerWidth <= 900
+    window.addEventListener('resize', () => {
+      const isMobile = window.innerWidth <= 900
+      if (wasMobile && !isMobile) {
+        // Crossed from mobile to desktop — NavLinks became visible
+        // Wait for CSS to apply and elements to become measurable
+        setTimeout(() => {
+          const navLinks = el.NavLinks
+          if (!navLinks) return
+          const linkKeys = ['Dashboard', 'Leads', 'Pitched', 'Negotiating', 'Active', 'Inactive']
+          linkKeys.forEach(key => {
+            const link = navLinks[key]
+            if (link && link.onUpdate) link.onUpdate(link, link.state)
+          })
+        }, 200)
+      }
+      wasMobile = isMobile
+    })
+  },
   
   Logo: {
     tag: 'h1',

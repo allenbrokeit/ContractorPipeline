@@ -21,10 +21,17 @@ export const DashboardLayout = {
     BottomSection: {
       extends: 'Flex',
       props: { flexDirection: 'column', gap: 'A' },
-      SectionTitle: { tag: 'h2', props: { text: 'Active Pipeline', color: 'white' } },
+      HeaderRow: {
+        extends: 'Flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        SectionTitle: { tag: 'h2', text: 'Active Pipeline', color: 'white' },
+        CreateLeadButton: {}
+      },
       ProposalKanbanBoard: { extends: 'ProposalKanbanBoard' }
     }
   },
 
-  ContractFormModal: { extends: 'ContractFormModal' }
+  ContractFormModal: { extends: 'ContractFormModal' },
+  CreateLeadModal: {}
 }

@@ -565,3 +565,18 @@ onRender: (el, s) => {
   })
 }
 ```
+
+### DOMQL `flow` Property Conflicting with Dynamic `display` Styles
+**Bug:** In the `CreateLeadModal`, the "New Client" input fields failed to appear when selecting "+ New Client...". The `NewClientFields` container had `flow: 'y'` combined with `display: (el, s) => s.selectedClientId === '__new__' ? 'flex' : 'none'`. Because `flow: 'y'` generates a baseline `display: flex` class, it often overrides or conflicts with dynamically assigned `display` styles, causing the hidden state to fail predictably.
+**Wrong Solution:** Attempting to toggle visibility using dynamic `display: 'none'` alongside `flow` properties.
+**Right Solution:** Use DOMQL's dedicated `hide` property (`hide: (el, s) => s.selectedClientId !== '__new__'`). The `hide` property evaluates the condition and explicitly applies `display: none !important` via Emotion classes, cleanly overriding layout properties like `flow` without conflict.
+
+### Missing `attr` Block on `<option>` Selected States
+**Bug:** Selecting the "+ New Client..." option from a dropdown did not trigger the state update properly. The options were defined with a flat `selected: (el, s) => s.isSelected || null` property instead of being wrapped in an `attr: {}` block.
+**Wrong Solution:** Placing HTML-specific attributes like `selected` directly on the root of the component definition for `<option>` tags.
+**Right Solution:** Always wrap native HTML attributes for form controls (especially `<option selected>`) in an `attr` block: `attr: { selected: (el, s) => s.isSelected || null }`. This bypasses the reactive CSS props pipeline and ensures the attribute binds directly and accurately to the real DOM node.
+
+### Combobox / Auto-complete Dropdowns in DOMQL
+**Bug:** Attempting to allow users to both select an existing client and type a brand new client name inside a native `<select>` element. Native HTML `<select>` elements strictly forbid arbitrary text entry.
+**Wrong Solution:** Trying to build a complex state-driven custom dropdown component from scratch to support text entry, or trying to force `<select>` to accept arbitrary strings.
+**Right Solution:** Use native HTML5 `<datalist>` paired with an `<input type="text">`. Bind the `list` attribute on the input to match the `id` of the datalist. Map the datalist `<option>` children to the global state exactly as you would for a select element. This provides native auto-complete while fully supporting arbitrary text entry.

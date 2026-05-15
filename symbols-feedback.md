@@ -565,3 +565,28 @@ onRender: (el, s) => {
   })
 }
 ```
+
+### DOMQL `flow` Property Conflicting with Dynamic `display` Styles
+**Bug:** In the `CreateLeadModal`, the "New Client" input fields failed to appear when selecting "+ New Client...". The `NewClientFields` container had `flow: 'y'` combined with `display: (el, s) => s.selectedClientId === '__new__' ? 'flex' : 'none'`. Because `flow: 'y'` generates a baseline `display: flex` class, it often overrides or conflicts with dynamically assigned `display` styles, causing the hidden state to fail predictably.
+**Wrong Solution:** Attempting to toggle visibility using dynamic `display: 'none'` alongside `flow` properties.
+**Right Solution:** Use DOMQL's dedicated `hide` property (`hide: (el, s) => s.selectedClientId !== '__new__'`). The `hide` property evaluates the condition and explicitly applies `display: none !important` via Emotion classes, cleanly overriding layout properties like `flow` without conflict.
+
+### Missing `attr` Block on `<option>` Selected States
+**Bug:** Selecting the "+ New Client..." option from a dropdown did not trigger the state update properly. The options were defined with a flat `selected: (el, s) => s.isSelected || null` property instead of being wrapped in an `attr: {}` block.
+**Wrong Solution:** Placing HTML-specific attributes like `selected` directly on the root of the component definition for `<option>` tags.
+**Right Solution:** Always wrap native HTML attributes for form controls (especially `<option selected>`) in an `attr` block: `attr: { selected: (el, s) => s.isSelected || null }`. This bypasses the reactive CSS props pipeline and ensures the attribute binds directly and accurately to the real DOM node.
+
+### Combobox / Auto-complete Dropdowns in DOMQL
+**Bug:** Attempting to allow users to both select an existing client and type a brand new client name inside a native `<select>` element. Native HTML `<select>` elements strictly forbid arbitrary text entry.
+**Wrong Solution:** Trying to build a complex state-driven custom dropdown component from scratch to support text entry, or trying to force `<select>` to accept arbitrary strings.
+**Right Solution:** Use native HTML5 `<datalist>` paired with an `<input type="text">`. Bind the `list` attribute on the input to match the `id` of the datalist. Map the datalist `<option>` children to the global state exactly as you would for a select element. This provides native auto-complete while fully supporting arbitrary text entry.
+
+### Modal Form Scrolling and Content Cut-offs
+**Bug:** Large form modals (e.g. `CreateLeadModal` with expanded "New Client" fields) overflowed the screen on shorter viewports or when dynamically expanding, cutting off the action buttons at the bottom.
+**Wrong Solution:** Trying to fix the overflow on the outer wrapper (`position: fixed`) or attempting to adjust the position of the buttons using `absolute` positioning.
+**Right Solution:** Apply `overflowY: 'auto'` and `maxHeight: '90vh'` directly to the inner `Dialog` component (the card). This allows the content within the card to scroll cleanly while the modal overlay background remains fixed to the viewport.
+
+### Formatting Raw Input Data On Object Creation
+**Bug:** When generating a new object (like a new Client with a phone number) from a free-text input field, the data saved to global state retained raw unformatted characters, breaking display expectations in other components (e.g. `ContractDetailPane` expecting `+1 (XXX) YYY-ZZZZ`).
+**Wrong Solution:** Attempting to force the user to type in strict formats or trying to handle the formatting purely at the display level across all possible consuming components.
+**Right Solution:** Intercept and format the raw input data immediately before pushing it to the global state array. Strip non-digits (`replace(/\D/g, '')`) and apply regex chunking (e.g., `+1 (XXX) YYY-ZZZZ`) during the `onClick` event prior to object creation. This ensures a clean, uniform data layer across the application.

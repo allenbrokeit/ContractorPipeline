@@ -31,6 +31,8 @@ export const CreateLeadModal = {
     borderRadius: 'Z',
     width: 'H',
     gap: 'A',
+    maxHeight: '90vh',
+    overflowY: 'auto',
 
     Header: {
       tag: 'h2',
@@ -188,12 +190,26 @@ export const CreateLeadModal = {
             finalClientId = existingClient.id
           } else {
             finalClientId = `c_${Date.now()}`
+            
+            let formattedPhone = s.newClientPhone || ''
+            let digitsOnly = formattedPhone.replace(/\D/g, '')
+            if (digitsOnly) {
+              if (digitsOnly.length === 10) {
+                formattedPhone = `+1 (${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6, 10)}`
+              } else if (digitsOnly.length === 11) {
+                formattedPhone = `+${digitsOnly.slice(0, 1)} (${digitsOnly.slice(1, 4)}) ${digitsOnly.slice(4, 7)} ${digitsOnly.slice(7, 11)}`
+              } else {
+                const match = digitsOnly.match(/.{1,4}/g)
+                if (match) formattedPhone = `+1 ${match.join(' ')}`
+              }
+            }
+
             newClientObj = {
               id: finalClientId,
               name: trimmedName,
               industry: s.newClientIndustry,
               contactEmail: s.newClientEmail,
-              contactPhone: s.newClientPhone
+              contactPhone: formattedPhone
             }
           }
 

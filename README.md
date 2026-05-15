@@ -65,7 +65,7 @@ npm run build
 
 ## Testing
 
-The project includes a comprehensive headless test suite using **Jest** and **jsdom** to verify the integrity of DOMQL components and reactivity logic.
+The project includes a comprehensive headless test suite using **Jest** and **jsdom** to verify the integrity of DOMQL components and reactivity logic. All test files are located in the `test/` directory.
 
 To execute the tests:
 ```bash

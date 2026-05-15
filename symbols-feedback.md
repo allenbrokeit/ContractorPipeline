@@ -580,3 +580,13 @@ onRender: (el, s) => {
 **Bug:** Attempting to allow users to both select an existing client and type a brand new client name inside a native `<select>` element. Native HTML `<select>` elements strictly forbid arbitrary text entry.
 **Wrong Solution:** Trying to build a complex state-driven custom dropdown component from scratch to support text entry, or trying to force `<select>` to accept arbitrary strings.
 **Right Solution:** Use native HTML5 `<datalist>` paired with an `<input type="text">`. Bind the `list` attribute on the input to match the `id` of the datalist. Map the datalist `<option>` children to the global state exactly as you would for a select element. This provides native auto-complete while fully supporting arbitrary text entry.
+
+### Modal Form Scrolling and Content Cut-offs
+**Bug:** Large form modals (e.g. `CreateLeadModal` with expanded "New Client" fields) overflowed the screen on shorter viewports or when dynamically expanding, cutting off the action buttons at the bottom.
+**Wrong Solution:** Trying to fix the overflow on the outer wrapper (`position: fixed`) or attempting to adjust the position of the buttons using `absolute` positioning.
+**Right Solution:** Apply `overflowY: 'auto'` and `maxHeight: '90vh'` directly to the inner `Dialog` component (the card). This allows the content within the card to scroll cleanly while the modal overlay background remains fixed to the viewport.
+
+### Formatting Raw Input Data On Object Creation
+**Bug:** When generating a new object (like a new Client with a phone number) from a free-text input field, the data saved to global state retained raw unformatted characters, breaking display expectations in other components (e.g. `ContractDetailPane` expecting `+1 (XXX) YYY-ZZZZ`).
+**Wrong Solution:** Attempting to force the user to type in strict formats or trying to handle the formatting purely at the display level across all possible consuming components.
+**Right Solution:** Intercept and format the raw input data immediately before pushing it to the global state array. Strip non-digits (`replace(/\D/g, '')`) and apply regex chunking (e.g., `+1 (XXX) YYY-ZZZZ`) during the `onClick` event prior to object creation. This ensures a clean, uniform data layer across the application.
